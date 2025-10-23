@@ -1,0 +1,115 @@
+{% extends "base.html" %} {% block title %}{{ comic.title }} - Chapter {{
+chapter.chapter_number }}{% endblock %} {% block extra_css %}
+<style>
+  .reader-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .reader-container img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 10px;
+  }
+  .chapter-navigation {
+    position: sticky;
+    top: 0;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 0;
+    z-index: 1000;
+  }
+  .btn-prev-next {
+    min-width: 120px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="chapter-navigation text-center mb-4">
+  <div class="btn-group">
+    {% if prev_chapter %}
+    <a
+      href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
+      class="btn btn-primary btn-prev-next"
+    >
+      ← Chapter {{ prev_chapter.chapter_number }}
+    </a>
+    {% endif %}
+
+    <a
+      href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+      class="btn btn-secondary"
+    >
+      Chapter List
+    </a>
+
+    {% if next_chapter %}
+    <a
+      href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=next_chapter.chapter_number) }}"
+      class="btn btn-primary btn-prev-next"
+    >
+      Chapter {{ next_chapter.chapter_number }} →
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="reader-container">
+  <h1 class="text-center mb-4">
+    {{ comic.title }} - Chapter {{ chapter.chapter_number }}
+  </h1>
+
+  {% for image_url in images %}
+  <img src="{{ image_url }}" alt="Page {{ loop.index }}" loading="lazy" />
+  {% endfor %}
+</div>
+
+<div class="chapter-navigation text-center mt-4">
+  <div class="btn-group">
+    {% if prev_chapter %}
+    <a
+      href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
+      class="btn btn-primary btn-prev-next"
+    >
+      ← Chapter {{ prev_chapter.chapter_number }}
+    </a>
+    {% endif %}
+
+    <a
+      href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+      class="btn btn-secondary"
+    >
+      Chapter List
+    </a>
+
+    {% if next_chapter %}
+    <a
+      href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=next_chapter.chapter_number) }}"
+      class="btn btn-primary btn-prev-next"
+    >
+      Chapter {{ next_chapter.chapter_number }} →
+    </a>
+    {% endif %} {% if current_user.is_authenticated and (
+    current_user.is_moderator() or (comic.uploader_id == current_user.id and
+    current_user.role == 'uploader') ) %}
+    <a
+      href="{{ url_for('admin.edit_chapter', chapter_id=chapter.id) }}"
+      class="btn btn-warning ms-2"
+      >Edit Chapter</a
+    >
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("keydown", function (e) {
+    // Left arrow for previous chapter
+    if (e.keyCode == 37) {
+      const prevLink = document.querySelector('a[href*="chapter"][href*="←"]');
+      if (prevLink) prevLink.click();
+    }
+    // Right arrow for next chapter
+    if (e.keyCode == 39) {
+      const nextLink = document.querySelector('a[href*="chapter"][href*="→"]');
+      if (nextLink) nextLink.click();
+    }
+  });
+</script>
+{% endblock %}

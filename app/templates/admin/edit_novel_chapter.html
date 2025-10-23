@@ -1,0 +1,113 @@
+{% extends "base.html" %} {% block title %}Sửa Chương Truyện Chữ{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 class="my-4">Sửa Chương cho "{{ comic.title }}"</h1>
+  <p class="text-muted">
+    <i class="fas fa-book"></i> Truyện Chữ - Chương {{ chapter.chapter_number }}
+  </p>
+
+  <form method="POST">
+    <div class="mb-3">
+      <label for="chapter_number" class="form-label">Số Chương</label>
+      <input
+        type="number"
+        step="0.1"
+        class="form-control"
+        id="chapter_number"
+        name="chapter_number"
+        value="{{ chapter.chapter_number }}"
+        required
+      />
+      <small class="form-text text-muted">Ví dụ: 1, 1.5, 2, etc.</small>
+    </div>
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Tiêu Đề Chương (tùy chọn)</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        value="{{ chapter.title }}"
+        placeholder="Ví dụ: Khởi Đầu Hành Trình"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="content" class="form-label">Nội Dung Chương</label>
+      <textarea
+        class="form-control"
+        id="content"
+        name="content"
+        rows="20"
+        required
+        style="
+          font-family: 'Georgia', 'Times New Roman', serif;
+          font-size: 15px;
+          line-height: 1.8;
+        "
+      >
+{{ chapter.content }}</textarea
+      >
+      <small class="form-text text-muted">
+        <i class="fas fa-info-circle"></i> Mỗi đoạn văn nên cách nhau 1 dòng
+        trống.
+      </small>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save"></i> Lưu Thay Đổi
+      </button>
+      <a
+        href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=chapter.chapter_number) }}"
+        class="btn btn-secondary"
+      >
+        <i class="fas fa-times"></i> Hủy
+      </a>
+      <a
+        href="{{ url_for('admin.delete_chapter', chapter_id=chapter.id) }}"
+        class="btn btn-danger ms-auto"
+        onclick="return confirm('Bạn có chắc muốn xóa chương này?')"
+      >
+        <i class="fas fa-trash"></i> Xóa Chương
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  #content {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  #content:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+
+  .gap-2 {
+    gap: 0.5rem;
+  }
+</style>
+
+<script>
+  // Warn before leaving if there's unsaved content
+  let originalContent = document.getElementById("content").value;
+
+  window.addEventListener("beforeunload", function (e) {
+    const currentContent = document.getElementById("content").value;
+    if (currentContent !== originalContent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+
+  // Clear warning on form submit
+  document.querySelector("form").addEventListener("submit", function () {
+    originalContent = document.getElementById("content").value;
+  });
+</script>
+{% endblock %}

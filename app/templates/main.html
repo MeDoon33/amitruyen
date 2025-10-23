@@ -1,0 +1,219 @@
+{% extends "base.html" %} {% block title %}Trang Chủ - Home{% endblock %} {%
+block content %}
+
+<div class="container-fluid">
+  <div class="row">
+    <!-- Nội dung chính -->
+    <div class="col-lg-9 col-md-8 main-content">
+      <!-- Truyện Nổi Bật - Hiển thị ở trên cùng với thiết kế thu nhỏ -->
+      <div class="row mb-5">
+        <div class="col-12">
+          <h2 class="mb-3">🔥 Truyện Nổi Bật</h2>
+          {% if popular_comics %}
+          <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3">
+            {% for comic in popular_comics %}
+            <div class="col">
+              <div class="card h-100 popular-comic-card">
+                <div class="position-relative">
+                  <img
+                    src="{{ comic.cover_image }}"
+                    class="card-img-top"
+                    alt="{{ comic.title }}"
+                    style="height: 200px; object-fit: cover"
+                  />
+                  <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-warning text-dark">
+                      <i class="fas fa-eye"></i> {{ "{:,}".format(comic.views)
+                      }}
+                    </span>
+                  </div>
+                </div>
+                <div class="card-body p-3">
+                  <h6
+                    class="card-title mb-2 text-truncate"
+                    title="{{ comic.title }}"
+                  >
+                    {{ comic.title }}
+                  </h6>
+                  <p class="card-text mb-2">
+                    <small
+                      class="text-muted text-truncate d-block"
+                      title="{{ comic.author }}"
+                      >{{ comic.author }}</small
+                    >
+                  </p>
+                  <a
+                    href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                    class="btn btn-primary btn-sm w-100"
+                    >Đọc Ngay</a
+                  >
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center">
+            <p class="text-muted">Chưa có truyện nổi bật nào.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Truyện Mới Cập Nhật - Hiển thị ở dưới -->
+      <div class="row">
+        <div class="col-12">
+          <h2 class="mb-4">📚 Truyện Mới Cập Nhật</h2>
+          <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% if latest_comics %} {% for comic in latest_comics %}
+            <div class="col">
+              <div class="card h-100">
+                <img
+                  src="{{ comic.cover_image }}"
+                  class="card-img-top"
+                  alt="{{ comic.title }}"
+                  style="height: 280px; object-fit: cover"
+                />
+                <div class="card-body">
+                  <h5 class="card-title text-truncate" title="{{ comic.title }}">{{ comic.title }}</h5>
+                  <p class="card-text">
+                    <small class="text-muted text-truncate d-block" title="{{ comic.author }}">{{ comic.author }}</small>
+                    <div class="mt-2">
+                      <span class="badge bg-primary text-truncate" title="{{ comic.status }}">{{ comic.status }}</span>
+                      {% if comic.genre %}
+                      <span class="badge bg-secondary text-truncate" title="{{ comic.genre }}">
+                        {{ comic.genre[:15] + "..." if comic.genre|length > 15 else comic.genre }}
+                      </span>
+                      {% endif %}
+                    </div>
+                  </p>
+                  <a
+                    href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                    class="btn btn-primary"
+                    >Đọc Ngay</a
+                  >
+                </div>
+              </div>
+            </div>
+            {% endfor %} {% else %}
+            <div class="col-12">
+              <p class="text-center">Chưa có truyện mới nào.</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a
+          href="{{ url_for('comic.get_comics') }}"
+          class="btn btn-lg btn-primary"
+          >Tìm Truyện</a
+        >
+      </div>
+    </div>
+
+    <!-- Sidebar bảng xếp hạng -->
+    <div class="col-lg-3 col-md-4 sidebar-ranking">
+      <div class="ranking-container sticky-top">
+        <div class="card ranking-card">
+          <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-trophy"></i> Bảng Xếp Hạng</h5>
+            <ul class="nav nav-pills card-header-pills mt-2" id="ranking-tabs">
+              <li class="nav-item">
+                <a class="nav-link active text-white" href="#top-thang">Top Tháng</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white-50" href="#top-tuan">Top Tuần</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white-50" href="#top-ngay">Top Ngày</a>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body p-0">
+            <div class="ranking-content">
+              {% if ranking_comics %}
+              {% for comic in ranking_comics %}
+              <div class="ranking-item d-flex align-items-center p-3 {% if loop.index <= 3 %}top-{{ loop.index }}{% endif %}">
+                <div class="ranking-number me-3">
+                  {% if loop.index == 1 %}
+                    <span class="badge bg-warning text-dark fw-bold">{{ "{:02d}".format(loop.index) }}</span>
+                  {% elif loop.index == 2 %}
+                    <span class="badge bg-secondary fw-bold">{{ "{:02d}".format(loop.index) }}</span>
+                  {% elif loop.index == 3 %}
+                    <span class="badge bg-danger fw-bold">{{ "{:02d}".format(loop.index) }}</span>
+                  {% else %}
+                    <span class="badge bg-light text-dark">{{ "{:02d}".format(loop.index) }}</span>
+                  {% endif %}
+                </div>
+                <div class="ranking-image me-3">
+                  <img src="{{ comic.cover_image }}" alt="{{ comic.title }}" class="ranking-thumb">
+                </div>
+                <div class="ranking-info flex-grow-1">
+                  <h6 class="ranking-title mb-1" title="{{ comic.title }}">
+                    <a href="{{ url_for('comic.view_comic', comic_id=comic.id) }}" class="text-decoration-none">
+                      {{ comic.title[:20] + "..." if comic.title|length > 20 else comic.title }}
+                    </a>
+                  </h6>
+                  <small class="text-muted d-block">Chapter {{ comic.chapters|length or 0 }}</small>
+                  <div class="ranking-views">
+                    <i class="fas fa-eye text-muted"></i>
+                    <span class="ms-1">{{ "{:,}".format(comic.views) if comic.views < 1000000 else "{:.1f}M".format(comic.views/1000000) }}</span>
+                  </div>
+                </div>
+              </div>
+              {% if not loop.last %}<hr class="my-0">{% endif %}
+              {% endfor %}
+              {% else %}
+              <p class="text-center text-muted p-3">Chưa có dữ liệu xếp hạng</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Backup ranking tabs functionality (inline)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inline script: DOM loaded');
+    
+    // Wait a bit then initialize
+    setTimeout(function() {
+        console.log('Inline script: Initializing ranking tabs...');
+        const tabs = document.querySelectorAll('#ranking-tabs .nav-link');
+        console.log('Inline script: Found tabs:', tabs.length);
+        
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Inline script: Tab clicked:', this.textContent);
+                
+                // Update tab states
+                tabs.forEach(function(t) {
+                    t.classList.remove('active', 'text-white');
+                    t.classList.add('text-white-50');
+                });
+                
+                this.classList.add('active', 'text-white');
+                this.classList.remove('text-white-50');
+                
+                // Try to call main.js function if available
+                if (typeof loadRankingData === 'function') {
+                    const tabType = this.getAttribute('href').substring(1);
+                    console.log('Inline script: Loading data for:', tabType);
+                    loadRankingData(tabType);
+                } else {
+                    console.log('Inline script: loadRankingData function not found');
+                }
+            });
+        });
+    }, 200);
+});
+</script>
+{% endblock %}

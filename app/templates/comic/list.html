@@ -1,0 +1,102 @@
+{% extends "base.html" %} {% block title %}Danh Sách Truyện{% endblock %} {%
+block content %}
+<div class="row">
+  <div class="col-12">
+    <h1 class="mb-4">Danh Sách Truyện</h1>
+
+    <div class="filter-section mb-4">
+      <form class="row g-3" method="GET">
+        <div class="col-md-3">
+          <select class="form-select" name="genre">
+            <option value="">All Genres</option>
+            <option value="action">Action</option>
+            <option value="adventure">Adventure</option>
+            <option value="comedy">Comedy</option>
+            <option value="drama">Drama</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="romance">Romance</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" name="status">
+            <option value="">All Status</option>
+            <option value="ongoing">Ongoing</option>
+            <option value="completed">Completed</option>
+            <option value="hiatus">On Hiatus</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary">Lọc</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+  {% for comic in comics.items %}
+  <div class="col">
+    <div class="card h-100">
+      <img
+        src="{{ comic.cover_image }}"
+        class="card-img-top"
+        alt="{{ comic.title }}"
+      />
+      <div class="card-body">
+        <h5 class="card-title">{{ comic.title }}</h5>
+        <p class="card-text">
+          <small class="text-muted">{{ comic.author }}</small><br />
+          <span class="badge bg-primary">{{ comic.status }}</span>
+          <span class="badge bg-secondary">{{ comic.genre }}</span>
+        </p>
+        <p class="card-text text-truncate">{{ comic.description }}</p>
+        <a
+          href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+          class="btn btn-primary"
+          >Read Now</a
+        >
+      </div>
+      <div class="card-footer">
+        <small class="text-muted"
+          >Updated: {{ comic.updated_at.strftime('%Y-%m-%d') }}</small
+        >
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if comics.pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if comics.has_prev %}
+    <li class="page-item">
+      <a
+        class="page-link"
+        href="{{ url_for('comic.get_comics', page=comics.prev_num, genre=genre, status=status, search=search) }}"
+        >Previous</a
+      >
+    </li>
+    {% endif %} {% for page_num in comics.iter_pages(left_edge=2,
+    left_current=2, right_current=2, right_edge=2) %} {% if page_num %}
+    <li class="page-item {% if page_num == comics.page %}active{% endif %}">
+      <a
+        class="page-link"
+        href="{{ url_for('comic.get_comics', page=page_num, genre=genre, status=status, search=search) }}"
+        >{{ page_num }}</a
+      >
+    </li>
+    {% else %}
+    <li class="page-item disabled"><span class="page-link">...</span></li>
+    {% endif %} {% endfor %} {% if comics.has_next %}
+    <li class="page-item">
+      <a
+        class="page-link"
+        href="{{ url_for('comic.get_comics', page=comics.next_num, genre=genre, status=status, search=search) }}"
+        >Next</a
+      >
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %} {% endblock %}

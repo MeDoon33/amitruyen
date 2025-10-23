@@ -1,0 +1,834 @@
+{% extends "base.html" %} {% block title %}Đăng Ký{% endblock %} {% block
+content %}
+<style>
+  /* Gradient Wave Register Form Styles */
+  .register-page-body {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .wave-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .wave {
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform-origin: center;
+  }
+
+  .wave-1 {
+    animation: waveMove 20s linear infinite;
+    animation-delay: 0s;
+  }
+
+  .wave-2 {
+    animation: waveMove 25s linear infinite reverse;
+    animation-delay: -5s;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+  }
+
+  .wave-3 {
+    animation: waveMove 30s linear infinite;
+    animation-delay: -10s;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+  }
+
+  @keyframes waveMove {
+    0% {
+      transform: translateX(-50%) skewX(-5deg);
+    }
+    100% {
+      transform: translateX(50%) skewX(-5deg);
+    }
+  }
+
+  .gradient-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
+    border-radius: 50%;
+    animation: particleFloat 15s linear infinite;
+  }
+
+  .particle:nth-child(1) {
+    top: 15%;
+    left: 15%;
+    animation-delay: 0s;
+  }
+  .particle:nth-child(2) {
+    top: 65%;
+    left: 85%;
+    animation-delay: -3s;
+  }
+  .particle:nth-child(3) {
+    top: 85%;
+    left: 25%;
+    animation-delay: -6s;
+  }
+  .particle:nth-child(4) {
+    top: 35%;
+    left: 75%;
+    animation-delay: -9s;
+  }
+  .particle:nth-child(5) {
+    top: 25%;
+    left: 55%;
+    animation-delay: -12s;
+  }
+
+  @keyframes particleFloat {
+    0%,
+    100% {
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0;
+    }
+    10%,
+    90% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(-120px) translateX(60px) scale(1.8);
+    }
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+  }
+  .register-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .register-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2);
+  }
+
+  .card-glow {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradientFlow 8s ease infinite;
+    border-radius: 24px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .register-card:hover .card-glow {
+    opacity: 1;
+  }
+
+  .register-header {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .gradient-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .icon-wave {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: iconWaveMove 3s ease-in-out infinite;
+  }
+
+  @keyframes iconWaveMove {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  .gradient-icon i {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 1;
+  }
+
+  .register-header h2 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.7));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .register-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+    position: relative;
+  }
+
+  .input-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .input-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .input-container:focus-within .input-bg {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-container input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 14px 20px;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    position: relative;
+    z-index: 2;
+  }
+
+  .input-container input::placeholder {
+    color: transparent;
+  }
+
+  .input-container input:-webkit-autofill,
+  .input-container input:-webkit-autofill:hover,
+  .input-container input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 30px rgba(255, 255, 255, 0.1) inset;
+    -webkit-text-fill-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .input-container label {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    font-weight: 400;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 3;
+  }
+
+  .input-container input:focus + label,
+  .input-container input:not(:placeholder-shown) + label {
+    top: 8px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    transform: translateY(0);
+  }
+
+  .input-wave {
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    );
+    z-index: 4;
+  }
+
+  .input-container:focus-within .input-wave {
+    animation: inputWaveFlow 1s ease-in-out;
+  }
+
+  @keyframes inputWaveFlow {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  .rank-selection {
+    margin-bottom: 20px;
+  }
+
+  .rank-selection h4 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .rank-options {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .rank-option {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  .rank-option input[type="radio"] {
+    display: none;
+  }
+
+  .rank-option-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+  }
+
+  .rank-option
+    input[type="radio"]:checked
+    + .rank-option-content
+    .rank-option-bg {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.1)
+    );
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .rank-option-content {
+    position: relative;
+    z-index: 2;
+    padding: 12px 8px;
+    text-align: center;
+  }
+
+  .rank-option-content i {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .rank-option-content span {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 11px;
+    font-weight: 500;
+    display: block;
+  }
+
+  .gradient-button {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 20px;
+    overflow: hidden;
+    height: 48px;
+  }
+
+  .button-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.1)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-button:hover .button-bg {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.15)
+    );
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .button-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .login-link {
+    text-align: center;
+  }
+
+  .login-link p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+  }
+
+  .login-link a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .login-link a::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: width 0.3s ease;
+  }
+
+  .login-link a:hover::after {
+    width: 100%;
+  }
+
+  .flash-messages {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+  }
+
+  .flash-message {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    animation: slideInRight 0.5s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .flash-message.success {
+    border-color: rgba(79, 172, 254, 0.4);
+    background: rgba(79, 172, 254, 0.1);
+  }
+
+  .flash-message.danger {
+    border-color: rgba(255, 107, 107, 0.4);
+    background: rgba(255, 107, 107, 0.1);
+  }
+
+  @media (max-width: 600px) {
+    .register-card {
+      padding: 20px;
+      border-radius: 16px;
+    }
+    .register-header h2 {
+      font-size: 1.5rem;
+    }
+    .gradient-icon {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+    }
+    .gradient-icon i {
+      font-size: 20px;
+    }
+    .rank-options {
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rank-option-content {
+      padding: 10px;
+    }
+    .register-header {
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+  }
+</style>
+
+<div class="register-page-body">
+  <!-- Wave Background -->
+  <div class="wave-container">
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+    <div class="wave wave-3"></div>
+  </div>
+
+  <!-- Gradient Particles -->
+  <div class="gradient-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %} {% endwith %}
+
+  <!-- Register Container -->
+  <div class="register-container">
+    <div class="register-card">
+      <div class="card-glow"></div>
+
+      <div class="register-header">
+        <div class="gradient-icon">
+          <div class="icon-wave"></div>
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>Gia Nhập Võ Lâm</h2>
+        <p>Bắt đầu hành trình tu luyện của bạn</p>
+      </div>
+
+      <form
+        class="register-form"
+        method="POST"
+        action="{{ url_for('auth.register') }}"
+      >
+        <div class="form-group">
+          <div class="input-container">
+            <div class="input-bg"></div>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              placeholder=" "
+            />
+            <label for="username">Tên võ sĩ</label>
+            <div class="input-wave"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-container">
+            <div class="input-bg"></div>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              placeholder=" "
+            />
+            <label for="email">Địa chỉ liên lạc</label>
+            <div class="input-wave"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-container">
+            <div class="input-bg"></div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              placeholder=" "
+            />
+            <label for="password">Mật khẩu bí truyền</label>
+            <div class="input-wave"></div>
+          </div>
+        </div>
+
+        <div class="rank-selection">
+          <h4>Chọn Con Đường Tu Luyện</h4>
+          <div class="rank-options">
+            <label class="rank-option">
+              <input type="radio" name="rank_type" value="Tu Tiên" checked />
+              <div class="rank-option-content">
+                <div class="rank-option-bg"></div>
+                <i class="fas fa-mountain"></i>
+                <span>Tu Tiên</span>
+              </div>
+            </label>
+
+            <label class="rank-option">
+              <input type="radio" name="rank_type" value="Ma Vương" />
+              <div class="rank-option-content">
+                <div class="rank-option-bg"></div>
+                <i class="fas fa-fire"></i>
+                <span>Ma Vương</span>
+              </div>
+            </label>
+
+            <label class="rank-option">
+              <input type="radio" name="rank_type" value="Vương Giả" />
+              <div class="rank-option-content">
+                <div class="rank-option-bg"></div>
+                <i class="fas fa-crown"></i>
+                <span>Vương Giả</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="gradient-button">
+          <div class="button-bg"></div>
+          <div class="button-content">
+            <span class="btn-text">Bắt Đầu Tu Luyện</span>
+          </div>
+        </button>
+      </form>
+
+      <div class="login-link">
+        <p>
+          Đã có tài khoản?
+          <a href="{{ url_for('auth.login') }}">Đăng nhập ngay</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Animate input waves on focus
+    const inputs = document.querySelectorAll(".input-container input");
+    inputs.forEach((input) => {
+      input.addEventListener("focus", function (e) {
+        const container = e.target.closest(".input-container");
+        const wave = container.querySelector(".input-wave");
+        wave.style.animation = "none";
+        setTimeout(() => {
+          wave.style.animation = "inputWaveFlow 1s ease-in-out";
+        }, 10);
+      });
+    });
+
+    // Card tilt effect
+    const card = document.querySelector(".register-card");
+    card.addEventListener("mousemove", function (e) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const deltaX = (x - centerX) / centerX;
+      const deltaY = (y - centerY) / centerY;
+
+      const tiltX = deltaY * 3;
+      const tiltY = -deltaX * 3;
+
+      card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-5px)`;
+    });
+
+    card.addEventListener("mouseleave", function () {
+      card.style.transform = "";
+    });
+
+    // Rank selection animation
+    const rankOptions = document.querySelectorAll(
+      '.rank-option input[type="radio"]'
+    );
+    rankOptions.forEach((option) => {
+      option.addEventListener("change", function () {
+        // Remove selection from all options
+        rankOptions.forEach((opt) => {
+          const content = opt.parentElement.querySelector(
+            ".rank-option-content"
+          );
+          content.style.transform = "";
+        });
+
+        // Add selection animation to chosen option
+        const content = this.parentElement.querySelector(
+          ".rank-option-content"
+        );
+        content.style.transform = "scale(1.05)";
+        setTimeout(() => {
+          content.style.transform = "";
+        }, 200);
+      });
+    });
+
+    // Auto hide flash messages
+    const flashMessages = document.querySelectorAll(".flash-message");
+    flashMessages.forEach((msg) => {
+      setTimeout(() => {
+        msg.style.animation = "slideOutRight 0.5s ease-out forwards";
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 5000);
+    });
+
+    // Enhanced particle animation
+    const particles = document.querySelectorAll(".particle");
+    particles.forEach((particle, index) => {
+      particle.style.animationDelay = `${-index * 3}s`;
+      particle.style.animationDuration = `${15 + index * 2}s`;
+    });
+  });
+
+  // Add slide out animation
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

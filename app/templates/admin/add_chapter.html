@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block title %}Add Chapter{% endblock %} {% block
+content %}
+<div class="container">
+  <h1 class="my-4">Add Chapter to "{{ comic.title }}"</h1>
+  <form
+    method="POST"
+    action="{{ url_for('admin.add_chapter', comic_id=comic.id) }}"
+  >
+    <div class="mb-3">
+      <label for="chapter_number" class="form-label">Chapter Number</label>
+      <input
+        type="number"
+        step="0.1"
+        class="form-control"
+        id="chapter_number"
+        name="chapter_number"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="title" class="form-label">Chapter Title (optional)</label>
+      <input type="text" class="form-control" id="title" name="title" />
+    </div>
+    <div class="mb-3">
+      <label for="image_urls" class="form-label"
+        >Image URLs (one per line)</label
+      >
+      <textarea
+        class="form-control"
+        id="image_urls"
+        name="image_urls"
+        rows="10"
+        required
+        placeholder="https://example.com/image1.jpg
+https://example.com/image2.jpg
+https://example.com/image3.jpg"
+      ></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Chapter</button>
+    <a
+      href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+      class="btn btn-secondary"
+      >Cancel</a
+    >
+  </form>
+</div>
+{% endblock %}

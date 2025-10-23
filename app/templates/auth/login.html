@@ -1,0 +1,612 @@
+{% extends "base.html" %} {% block title %}Đăng Nhập{% endblock %} {% block
+content %}
+<style>
+  /* Gradient Wave Login Form Styles */
+  .login-page-body {
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+  }
+
+  @keyframes gradientFlow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .wave-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .wave {
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transform-origin: center;
+  }
+
+  .wave-1 {
+    animation: waveMove 20s linear infinite;
+    animation-delay: 0s;
+  }
+
+  .wave-2 {
+    animation: waveMove 25s linear infinite reverse;
+    animation-delay: -5s;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+  }
+
+  @keyframes waveMove {
+    0% {
+      transform: translateX(-50%) skewX(-5deg);
+    }
+    100% {
+      transform: translateX(50%) skewX(-5deg);
+    }
+  }
+
+  .gradient-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
+    border-radius: 50%;
+    animation: particleFloat 15s linear infinite;
+  }
+
+  .particle:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+  .particle:nth-child(2) {
+    top: 60%;
+    left: 80%;
+    animation-delay: -3s;
+  }
+  .particle:nth-child(3) {
+    top: 80%;
+    left: 20%;
+    animation-delay: -6s;
+  }
+
+  @keyframes particleFloat {
+    0%,
+    100% {
+      transform: translateY(0) translateX(0) scale(1);
+      opacity: 0;
+    }
+    10%,
+    90% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateY(-100px) translateX(50px) scale(1.5);
+    }
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 10;
+  }
+
+  .login-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .login-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.2);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .gradient-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.05)
+    );
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .icon-wave {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: iconWaveMove 3s ease-in-out infinite;
+  }
+
+  @keyframes iconWaveMove {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  .gradient-icon i {
+    font-size: 32px;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 1;
+  }
+
+  .login-header h2 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.7));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .login-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    font-weight: 400;
+  }
+
+  .form-group {
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .input-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .input-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .input-container:focus-within .input-bg {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-container input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 20px 24px;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    position: relative;
+    z-index: 2;
+  }
+
+  .input-container input::placeholder {
+    color: transparent;
+  }
+
+  .input-container label {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 16px;
+    font-weight: 400;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    z-index: 3;
+  }
+
+  .input-container input:focus + label,
+  .input-container input:not(:placeholder-shown) + label {
+    top: 12px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    transform: translateY(0);
+  }
+
+  .input-wave {
+    position: absolute;
+    bottom: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    );
+    z-index: 4;
+  }
+
+  .input-container:focus-within .input-wave {
+    animation: inputWaveFlow 1s ease-in-out;
+  }
+
+  @keyframes inputWaveFlow {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+
+  .gradient-button {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 28px;
+    overflow: hidden;
+    height: 56px;
+  }
+
+  .button-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.1)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .gradient-button:hover .button-bg {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.15)
+    );
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .button-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .signup-link {
+    text-align: center;
+  }
+
+  .signup-link p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+  }
+
+  .signup-link a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .signup-link a::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.9);
+    transition: width 0.3s ease;
+  }
+
+  .signup-link a:hover::after {
+    width: 100%;
+  }
+
+  .flash-messages {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+  }
+
+  .flash-message {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    color: rgba(255, 255, 255, 0.9);
+    animation: slideInRight 0.5s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .flash-message.success {
+    border-color: rgba(79, 172, 254, 0.4);
+    background: rgba(79, 172, 254, 0.1);
+  }
+
+  .flash-message.danger {
+    border-color: rgba(255, 107, 107, 0.4);
+    background: rgba(255, 107, 107, 0.1);
+  }
+
+  @media (max-width: 600px) {
+    .login-card {
+      padding: 24px;
+      border-radius: 16px;
+    }
+    .login-header h2 {
+      font-size: 1.6rem;
+    }
+    .gradient-icon {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 16px;
+    }
+  }
+</style>
+
+<div class="login-page-body">
+  <!-- Wave Background -->
+  <div class="wave-container">
+    <div class="wave wave-1"></div>
+    <div class="wave wave-2"></div>
+  </div>
+
+  <!-- Gradient Particles -->
+  <div class="gradient-particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %} {% endwith %}
+
+  <!-- Login Container -->
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="gradient-icon">
+          <div class="icon-wave"></div>
+          <i class="fas fa-book-open"></i>
+        </div>
+        <h2>Chào Mừng</h2>
+        <p>Đăng nhập để tiếp tục hành trình tu luyện</p>
+      </div>
+
+      <form
+        class="login-form"
+        method="POST"
+        action="{{ url_for('auth.login') }}"
+      >
+        <div class="form-group">
+          <div class="input-container">
+            <div class="input-bg"></div>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              required
+              placeholder=" "
+            />
+            <label for="username">Tên đăng nhập</label>
+            <div class="input-wave"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-container">
+            <div class="input-bg"></div>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              placeholder=" "
+            />
+            <label for="password">Mật khẩu</label>
+            <div class="input-wave"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="gradient-button">
+          <div class="button-bg"></div>
+          <div class="button-content">
+            <span class="btn-text">Đăng Nhập</span>
+          </div>
+        </button>
+      </form>
+
+      <div class="signup-link">
+        <p>
+          Chưa có tài khoản?
+          <a href="{{ url_for('auth.register') }}">Đăng ký ngay</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Animate input waves on focus
+    const inputs = document.querySelectorAll(".input-container input");
+    inputs.forEach((input) => {
+      input.addEventListener("focus", function (e) {
+        const container = e.target.closest(".input-container");
+        const wave = container.querySelector(".input-wave");
+        wave.style.animation = "none";
+        setTimeout(() => {
+          wave.style.animation = "inputWaveFlow 1s ease-in-out";
+        }, 10);
+      });
+    });
+
+    // Card tilt effect
+    const card = document.querySelector(".login-card");
+    card.addEventListener("mousemove", function (e) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const deltaX = (x - centerX) / centerX;
+      const deltaY = (y - centerY) / centerY;
+
+      const tiltX = deltaY * 5;
+      const tiltY = -deltaX * 5;
+
+      card.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateY(-5px)`;
+    });
+
+    card.addEventListener("mouseleave", function () {
+      card.style.transform = "";
+    });
+
+    // Auto hide flash messages
+    const flashMessages = document.querySelectorAll(".flash-message");
+    flashMessages.forEach((msg) => {
+      setTimeout(() => {
+        msg.style.animation = "slideOutRight 0.5s ease-out forwards";
+        setTimeout(() => {
+          msg.remove();
+        }, 500);
+      }, 5000);
+    });
+  });
+
+  // Add slide out animation
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+  document.head.appendChild(style);
+</script>
+{% endblock %}

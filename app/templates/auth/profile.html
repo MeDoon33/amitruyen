@@ -1,0 +1,459 @@
+{% extends 'base.html' %} {% block title %}Your Account{% endblock %} {% block
+content %}
+<style>
+  .profile-container {
+    display: flex;
+    margin-top: 40px;
+  }
+  .profile-sidebar {
+    width: 260px;
+    background: #222;
+    color: #fff;
+    border-radius: 8px;
+    margin-right: 32px;
+    padding: 24px 0;
+    min-height: 400px;
+  }
+  .profile-sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .profile-sidebar li {
+    padding: 14px 32px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+    transition: background 0.2s;
+  }
+  .profile-sidebar li.active,
+  .profile-sidebar li:hover {
+    background: #333;
+  }
+  .profile-main {
+    flex: 1;
+    background: #181a1b;
+    border-radius: 8px;
+    padding: 32px;
+    color: #fff;
+  }
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+  .profile-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+  }
+  .profile-info-table td {
+    padding: 10px 0;
+    border-bottom: 1px solid #333;
+  }
+  .profile-info-table td:first-child {
+    color: #aaa;
+    width: 140px;
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+  }
+  .form-group {
+    margin-bottom: 20px;
+  }
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #aaa;
+  }
+  .form-group input {
+    width: 100%;
+    padding: 10px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #fff;
+  }
+  .btn-primary {
+    background: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover {
+    background: #0056b3;
+  }
+  .fanpage-item {
+    border-bottom: 1px solid #333;
+  }
+  .fanpage-item:hover {
+    background: #333;
+  }
+  .fanpage-item a:hover {
+    text-decoration: none !important;
+  }
+  /* Mobile improvements */
+  @media (max-width: 767.98px) {
+    .profile-container {
+      flex-direction: column;
+    }
+    .profile-sidebar {
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 16px;
+      padding: 12px 0;
+    }
+    .profile-sidebar ul {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .profile-sidebar li {
+      flex: 1 1 50%;
+      padding: 10px 16px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .profile-main {
+      padding: 20px;
+    }
+    .profile-info-table td {
+      display: block;
+      width: 100%;
+    }
+    .profile-info-table tr {
+      display: block;
+      padding: 8px 0;
+    }
+    .profile-info-table td:first-child {
+      width: auto;
+      font-weight: 600;
+      color: #ccc;
+    }
+    .profile-info-table {
+      border-collapse: separate;
+    }
+    .profile-avatar {
+      width: 70px;
+      height: 70px;
+      margin: 0 0 12px 0;
+    }
+    .tab-content h2 {
+      font-size: 1.35rem;
+    }
+    .fanpage-item {
+      flex: 1 1 100%;
+      order: 99;
+    }
+    .logout-item {
+      flex: 1 1 100%;
+      background: #2a2a2a;
+      margin-top: 4px;
+    }
+    .profile-sidebar li.active {
+      background: #2d2d2d;
+    }
+  }
+
+  /* Optional hamburger for collapsing tabs on very small screens */
+  .profile-hamburger {
+    display: none;
+    position: relative;
+    z-index: 10;
+  }
+  @media (max-width: 575.98px) {
+    .profile-hamburger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #222;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .profile-hamburger button {
+      background: #007bff;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .profile-sidebar ul {
+      display: none;
+    }
+    .profile-sidebar.open ul {
+      display: flex;
+    }
+  }
+</style>
+<div class="profile-container">
+  <div class="profile-hamburger">
+    <div><i class="fas fa-user"></i> Tài khoản</div>
+    <button type="button" id="toggleTabsBtn">Menu</button>
+  </div>
+  <div class="profile-sidebar" id="profileSidebar">
+    <ul>
+      <li class="tab-item active" data-tab="info">Thông tin tài khoản</li>
+      <li class="tab-item" data-tab="displayname">Đổi tên hiển thị</li>
+      <li class="tab-item" data-tab="follow">Truyện theo dõi</li>
+      <li class="tab-item" data-tab="coin">Linh Thạch</li>
+      <li class="tab-item" data-tab="notification">Thông báo</li>
+      <li class="tab-item" data-tab="password">Đổi mật khẩu</li>
+      <li class="tab-item" data-tab="avatar">Đổi avatar</li>
+      <li class="fanpage-item">
+        <a
+          href="https://web.facebook.com/profile.php?id=100069614863695"
+          target="_blank"
+          style="
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+          "
+        >
+          <i
+            class="fab fa-facebook-square"
+            style="margin-right: 8px; color: #1877f2"
+          ></i>
+          Fanpage Facebook
+        </a>
+      </li>
+      <li class="logout-item">Thoát</li>
+    </ul>
+  </div>
+  <div class="profile-main">
+    <!-- Tab: Thông tin tài khoản -->
+    <div class="tab-content active" id="tab-info">
+      <div class="profile-avatar">
+        <img
+          src="{{ user.get_avatar_url() }}"
+          alt="Avatar"
+          style="
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+          "
+        />
+      </div>
+      <h2>Thông tin tài khoản</h2>
+      <table class="profile-info-table">
+        <tr>
+          <td>Tên đăng nhập</td>
+          <td>{{ user.username }}</td>
+        </tr>
+        <tr>
+          <td>Tên hiển thị</td>
+          <td>{{ user.get_display_name_with_styled_title() | safe }}</td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td>{{ user.email }}</td>
+        </tr>
+        <tr>
+          <td>Vai trò</td>
+          <td>{{ user.get_role_display() }}</td>
+        </tr>
+        <tr>
+          <td>Ngày tham gia</td>
+          <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Tab: Đổi tên hiển thị -->
+    <div class="tab-content" id="tab-displayname">
+      <h2>Đổi tên hiển thị</h2>
+      <p style="color: #aaa; margin-bottom: 20px">
+        Tên hiển thị sẽ được dùng khi bạn bình luận hoặc tương tác trên website.
+        Nếu không đặt tên hiển thị, hệ thống sẽ dùng tên đăng nhập của bạn.
+      </p>
+      <form method="POST" action="{{ url_for('auth.update_display_name') }}">
+        <div class="form-group">
+          <label>Tên đăng nhập (không thể đổi)</label>
+          <input
+            type="text"
+            value="{{ user.username }}"
+            disabled
+            style="opacity: 0.6"
+          />
+        </div>
+        <div class="form-group">
+          <label>Tên hiển thị</label>
+          <input
+            type="text"
+            name="display_name"
+            placeholder="Nhập tên hiển thị của bạn"
+            value="{{ user.display_name or '' }}"
+            maxlength="100"
+            required
+          />
+          <small style="color: #888; display: block; margin-top: 8px">
+            Tên này sẽ hiển thị khi bạn bình luận (tối đa 100 ký tự)
+          </small>
+        </div>
+        <button type="submit" class="btn-primary">Cập nhật tên hiển thị</button>
+      </form>
+    </div>
+
+    <!-- Tab: Truyện theo dõi -->
+    <div class="tab-content" id="tab-follow">
+      <h2>Truyện theo dõi</h2>
+      {% if followed_comics %}
+      <div class="row">
+        {% for comic in followed_comics %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+          <div class="card h-100">
+            <img
+              src="{{ comic.cover_image }}"
+              class="card-img-top"
+              alt="{{ comic.title }}"
+              style="height: 200px; object-fit: cover"
+            />
+            <div class="card-body d-flex flex-column">
+              <h6 class="card-title text-truncate" title="{{ comic.title }}">
+                {{ comic.title }}
+              </h6>
+              <p class="card-text text-muted small">{{ comic.author }}</p>
+              <div class="mt-auto">
+                <a
+                  href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                  class="btn btn-primary btn-sm w-100"
+                  >Xem truyện</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="fas fa-heart-broken fa-3x mb-3"></i>
+        <p>Bạn chưa theo dõi truyện nào.</p>
+        <a href="{{ url_for('comic.get_comics') }}" class="btn btn-primary"
+          >Khám phá truyện</a
+        >
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab: Linh Thạch -->
+    <div class="tab-content" id="tab-coin">
+      <h2>Linh Thạch</h2>
+      <p style="color: #aaa">Chức năng đang được phát triển...</p>
+    </div>
+
+    <!-- Tab: Thông báo -->
+    <div class="tab-content" id="tab-notification">
+      <h2>Thông báo</h2>
+      <p style="color: #aaa">Chức năng đang được phát triển...</p>
+    </div>
+
+    <!-- Tab: Đổi mật khẩu -->
+    <div class="tab-content" id="tab-password">
+      <h2>Đổi mật khẩu</h2>
+      <form method="POST" action="{{ url_for('auth.change_password') }}">
+        <div class="form-group">
+          <label>Mật khẩu hiện tại</label>
+          <input type="password" name="current_password" required />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu mới</label>
+          <input type="password" name="new_password" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label>Xác nhận mật khẩu mới</label>
+          <input
+            type="password"
+            name="confirm_password"
+            required
+            minlength="6"
+          />
+        </div>
+        <button type="submit" class="btn-primary">Đổi mật khẩu</button>
+      </form>
+    </div>
+
+    <!-- Tab: Đổi avatar -->
+    <div class="tab-content" id="tab-avatar">
+      <h2>Đổi avatar</h2>
+      <div class="profile-avatar" style="margin: 20px 0">
+        <img
+          src="{{ user.get_avatar_url() }}"
+          alt="Avatar"
+          style="
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+          "
+        />
+      </div>
+      <form method="POST" action="{{ url_for('auth.update_avatar') }}">
+        <div class="form-group">
+          <label>URL ảnh avatar</label>
+          <input
+            type="url"
+            name="avatar_url"
+            placeholder="https://example.com/avatar.jpg"
+            value="{{ user.avatar_url or '' }}"
+            required
+          />
+          <small style="color: #888; display: block; margin-top: 8px">
+            Nhập URL trực tiếp tới ảnh (jpg, png, gif). Ví dụ:
+            https://i.imgur.com/abc123.jpg
+          </small>
+        </div>
+        <button type="submit" class="btn-primary">Cập nhật avatar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Tab switching
+  document.querySelectorAll(".tab-item").forEach((item) => {
+    item.addEventListener("click", function () {
+      const tabName = this.getAttribute("data-tab");
+
+      // Remove active class from all tabs and contents
+      document
+        .querySelectorAll(".tab-item")
+        .forEach((t) => t.classList.remove("active"));
+      document
+        .querySelectorAll(".tab-content")
+        .forEach((c) => c.classList.remove("active"));
+
+      // Add active class to clicked tab and corresponding content
+      this.classList.add("active");
+      document.getElementById("tab-" + tabName).classList.add("active");
+    });
+  });
+
+  // Logout button
+  document.querySelector(".logout-item").addEventListener("click", function () {
+    window.location.href = '{{ url_for("auth.logout") }}';
+  });
+
+  // Mobile hamburger toggle
+  const toggleBtn = document.getElementById("toggleTabsBtn");
+  const sidebar = document.getElementById("profileSidebar");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("open");
+    });
+  }
+</script>
+{% endblock %}

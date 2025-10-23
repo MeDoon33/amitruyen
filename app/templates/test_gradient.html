@@ -1,0 +1,248 @@
+{% extends "base.html" %} {% block title %}Test Gradient Clip{% endblock %} {%
+block content %}
+<style>
+  /* Force gradient-clip to work - Override any conflicting styles */
+  /* Fallback colors first */
+  .rank-title {
+    font-weight: 700 !important;
+    display: inline-block !important;
+    text-shadow: none !important;
+    color: #6366f1 !important; /* Fallback color */
+  }
+
+  .rank-title.level-1 {
+    color: #6c757d !important; /* Gray fallback */
+  }
+
+  .rank-title.level-2 {
+    color: #22c55e !important; /* Green fallback */
+  }
+
+  .rank-title.level-3,
+  .rank-title.level-4 {
+    color: #06b6d4 !important; /* Blue fallback */
+  }
+
+  .rank-title.level-5,
+  .rank-title.level-6 {
+    color: #a855f7 !important; /* Purple fallback */
+  }
+
+  .rank-title.level-7,
+  .rank-title.level-8 {
+    color: #fbbf24 !important; /* Yellow fallback */
+  }
+
+  .rank-title.level-9,
+  .rank-title.level-10 {
+    color: #ef4444 !important; /* Red fallback */
+  }
+
+  /* Progressive enhancement: gradient-clip for supported browsers */
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    .rank-title {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+      -webkit-background-clip: text !important;
+      background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      color: transparent !important;
+    }
+
+    .rank-title.level-1 {
+      background: linear-gradient(135deg, #6c757d, #495057, #343a40) !important;
+    }
+
+    .rank-title.level-2 {
+      background: linear-gradient(135deg, #22c55e, #16a34a, #15803d) !important;
+    }
+
+    .rank-title.level-3,
+    .rank-title.level-4 {
+      background: linear-gradient(135deg, #06b6d4, #0891b2, #0e7490) !important;
+    }
+
+    .rank-title.level-5,
+    .rank-title.level-6 {
+      background: linear-gradient(135deg, #a855f7, #9333ea, #7c3aed) !important;
+    }
+
+    .rank-title.level-7,
+    .rank-title.level-8 {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706) !important;
+    }
+
+    .rank-title.level-9,
+    .rank-title.level-10 {
+      background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c) !important;
+    }
+  }
+
+  /* Test class */
+  .test-gradient {
+    background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-weight: bold !important;
+    font-size: 20px !important;
+    display: inline-block !important;
+  }
+</style>
+<div class="container mt-4">
+  <h1>🧪 Test Gradient Clip</h1>
+
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3>Gradient Clip Tests</h3>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <h5>Basic gradient test:</h5>
+        <p
+          style="
+            background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 24px;
+            display: inline-block;
+          "
+        >
+          This should be red gradient text
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <h5>Alternative gradient test (without transparent fill):</h5>
+        <p
+          style="
+            background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 24px;
+            display: inline-block;
+          "
+        >
+          RED GRADIENT TEXT
+        </p>
+        <br /><br />
+        <p
+          style="
+            background: linear-gradient(135deg, #22c55e, #16a34a, #15803d);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 24px;
+            display: inline-block;
+          "
+        >
+          GREEN GRADIENT TEXT
+        </p>
+        <br /><br />
+        <p
+          style="
+            background: linear-gradient(135deg, #06b6d4, #0891b2, #0e7490);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 24px;
+            display: inline-block;
+          "
+        >
+          BLUE GRADIENT TEXT
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <h5>Fallback test (colored text if gradient-clip not supported):</h5>
+        <p style="color: #ef4444; font-weight: bold; font-size: 24px">
+          RED SOLID COLOR
+        </p>
+        <p style="color: #22c55e; font-weight: bold; font-size: 24px">
+          GREEN SOLID COLOR
+        </p>
+        <p style="color: #06b6d4; font-weight: bold; font-size: 24px">
+          BLUE SOLID COLOR
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <h5>Level classes test:</h5>
+        <p>
+          <span class="rank-title level-1" style="font-size: 20px"
+            >Level 1 - Trắng/Xám</span
+          >
+        </p>
+        <p>
+          <span class="rank-title level-2" style="font-size: 20px"
+            >Level 2 - Xanh lá</span
+          >
+        </p>
+        <p>
+          <span class="rank-title level-3" style="font-size: 20px"
+            >Level 3 - Xanh biển</span
+          >
+        </p>
+        <p>
+          <span class="rank-title level-5" style="font-size: 20px"
+            >Level 5 - Tím</span
+          >
+        </p>
+        <p>
+          <span class="rank-title level-7" style="font-size: 20px"
+            >Level 7 - Vàng</span
+          >
+        </p>
+        <p>
+          <span class="rank-title level-9" style="font-size: 20px"
+            >Level 9 - Đỏ</span
+          >
+        </p>
+      </div>
+
+      <div class="mb-3">
+        <h5>Real user test:</h5>
+        {% for user in sample_users %}
+        <p>
+          <strong>{{ user.username }}</strong> (Level {{ user.level }}): {% if
+          RANK_TITLES_ENABLED %}
+          <span
+            class="{{ user.get_rank_title_css_class() }}"
+            style="font-size: 18px"
+            >{{ user.get_rank_title() }}</span
+          >
+          {% else %}
+          <span class="badge bg-secondary">Đang phát triển</span>
+          {% endif %}
+        </p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <a href="{{ url_for('main.demo_level_colors') }}" class="btn btn-primary"
+      >Demo Level Colors</a
+    >
+    <a href="{{ url_for('main.homepage') }}" class="btn btn-secondary">Home</a>
+  </div>
+</div>
+
+<style>
+  /* Additional test styles */
+  .test-gradient {
+    background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    font-size: 20px;
+    display: inline-block;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,573 @@
+{% extends "base.html" %} {% block title %}Bảng Xếp Hạng Truyện{% endblock %} {%
+block extra_css %}
+<style>
+  body {
+    background-color: #f8f9fa;
+  }
+
+  .ranking-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .ranking-header {
+    text-align: center;
+    padding: 25px 25px 0;
+  }
+
+  .ranking-title {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .ranking-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding: 0 25px;
+  }
+
+  .ranking-tab {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+
+  .ranking-tab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .ranking-tab.active {
+    background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+    border-color: #ff6b6b;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+  }
+
+  .content-type-toggle-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 0 25px;
+  }
+
+  /* Toggle Switch Styles */
+  .toggle-switch {
+    position: relative;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .toggle-switch.compact {
+    width: 200px;
+    height: 45px;
+    padding: 3px;
+  }
+
+  .toggle-switch.bordered {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: border-color 0.5s ease, box-shadow 0.5s ease,
+      background 0.5s ease;
+  }
+
+  .toggle-switch .slider {
+    position: absolute;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 22px;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(255, 255, 255, 0.4);
+    padding: 0 15px;
+    will-change: transform;
+  }
+
+  .toggle-switch.compact .slider {
+    width: 50%;
+    height: calc(100% - 6px);
+    left: 3px;
+  }
+
+  .toggle-switch .slider i {
+    font-size: 16px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .toggle-switch .slider span {
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+  }
+
+  .toggle-switch.novel-mode {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .toggle-switch.novel-mode .slider {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    transform: translateX(calc(100% - 6px));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0.4);
+  }
+
+  .toggle-switch.novel-mode .slider i::before {
+    content: "\f02d";
+  }
+
+  .toggle-switch:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+    transform: scale(1.02);
+  }
+
+  .toggle-switch:hover .slider {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+
+  .toggle-switch:hover .slider i {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  .toggle-switch:active {
+    transform: scale(0.98);
+  }
+
+  .toggle-switch:active .slider {
+    transform: scale(0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-switch.novel-mode:active .slider {
+    transform: translateX(calc(100% - 6px)) scale(0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Ripple effect on click */
+  @keyframes ripple {
+    0% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 15px rgba(255, 255, 255, 0);
+    }
+    100% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+  }
+
+  @keyframes ripple-novel {
+    0% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 15px rgba(245, 87, 108, 0);
+    }
+    100% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0);
+    }
+  }
+
+  .toggle-switch.animating .slider {
+    animation: ripple 0.6s ease-out;
+  }
+
+  .toggle-switch.novel-mode.animating .slider {
+    animation: ripple-novel 0.6s ease-out;
+  }
+
+  .ranking-list {
+    padding: 0 25px 25px;
+  }
+
+  .ranking-item {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+  }
+
+  .ranking-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+  }
+
+  .rank-position {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .rank-1 {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  .rank-1 .rank-position {
+    color: #ffd700;
+  }
+
+  .rank-2 {
+    border-color: #c0c0c0;
+    box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+  }
+  .rank-2 .rank-position {
+    color: #c0c0c0;
+  }
+
+  .rank-3 {
+    border-color: #cd7f32;
+    box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+  }
+  .rank-3 .rank-position {
+    color: #cd7f32;
+  }
+
+  .comic-thumbnail {
+    width: 60px;
+    height: 85px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .comic-info {
+    flex: 1;
+  }
+
+  .comic-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: white;
+  }
+
+  .comic-title a {
+    color: white;
+    text-decoration: none;
+  }
+
+  .comic-title a:hover {
+    color: #ffd93d;
+  }
+
+  .comic-author {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .comic-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .stat-item {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .stat-item i {
+    color: #ffd93d;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .status-ongoing {
+    background: rgba(40, 167, 69, 0.8);
+    color: white;
+  }
+
+  .status-completed {
+    background: rgba(23, 162, 184, 0.8);
+    color: white;
+  }
+
+  .status-hiatus {
+    background: rgba(255, 193, 7, 0.8);
+    color: #212529;
+  }
+
+  @media (max-width: 768px) {
+    .ranking-tabs {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .comic-stats {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ranking-item {
+      flex-direction: column;
+      text-align: center;
+      gap: 10px;
+    }
+
+    .rank-position {
+      order: -1;
+    }
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="ranking-container">
+        <div class="ranking-header">
+          <h3 class="ranking-title">
+            <i class="fas fa-trophy"></i> Bảng Xếp Hạng Truyện
+          </h3>
+
+          <!-- Time Period Tabs -->
+          <div class="ranking-tabs">
+            <button
+              class="ranking-tab active"
+              onclick="switchPeriod('all', this)"
+            >
+              Tất Cả
+            </button>
+            <button class="ranking-tab" onclick="switchPeriod('month', this)">
+              Tháng Này
+            </button>
+            <button class="ranking-tab" onclick="switchPeriod('week', this)">
+              Tuần Này
+            </button>
+            <button class="ranking-tab" onclick="switchPeriod('day', this)">
+              Hôm Nay
+            </button>
+          </div>
+
+          <!-- Content Type Toggle Switch -->
+          <div class="content-type-toggle-wrapper">
+            <div
+              class="toggle-switch compact bordered"
+              id="rankingContentToggle"
+              onclick="toggleRankingContentType()"
+            >
+              <div class="slider">
+                <i class="fas fa-image"></i><span>Tranh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking List -->
+        <div class="ranking-list" id="ranking-content">
+          <div class="text-center p-4">
+            <div class="spinner-border text-light" role="status">
+              <span class="visually-hidden">Đang tải...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global variables
+  let currentPeriod = "all";
+  let currentType = "comics"; // Default to comics
+
+  // Toggle content type with switch
+  function toggleRankingContentType() {
+    const toggle = document.getElementById("rankingContentToggle");
+    const slider = toggle.querySelector(".slider span");
+
+    // Add animation class
+    toggle.classList.add("animating");
+
+    // Toggle mode
+    toggle.classList.toggle("novel-mode");
+
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      toggle.classList.remove("animating");
+    }, 600);
+
+    if (toggle.classList.contains("novel-mode")) {
+      currentType = "novels";
+      slider.textContent = "Chữ";
+    } else {
+      currentType = "comics";
+      slider.textContent = "Tranh";
+    }
+
+    loadComicRanking();
+  }
+
+  // Switch time period
+  function switchPeriod(period, button) {
+    currentPeriod = period;
+
+    // Update tab buttons
+    document
+      .querySelectorAll(".ranking-tab")
+      .forEach((tab) => tab.classList.remove("active"));
+    button.classList.add("active");
+
+    // Load new data
+    loadComicRanking();
+  }
+
+  // Switch content type (kept for compatibility but not used with toggle)
+  function switchType(type, button) {
+    currentType = type;
+
+    // Update tab buttons
+    document
+      .querySelectorAll(".content-tab")
+      .forEach((tab) => tab.classList.remove("active"));
+    button.classList.add("active");
+
+    // Load new data
+    loadComicRanking();
+  }
+
+  // Load comic ranking
+  async function loadComicRanking() {
+    try {
+      const container = document.getElementById("ranking-content");
+      container.innerHTML = `
+        <div class="text-center p-4">
+          <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+          </div>
+        </div>
+      `;
+
+      let url = `/api/comic-ranking?period=${currentPeriod}&type=${currentType}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success && data.comics.length > 0) {
+        let html = "";
+
+        data.comics.forEach((comic, index) => {
+          const rank = index + 1;
+          const rankClass = rank <= 3 ? `rank-${rank}` : "";
+
+          // Status badge
+          let statusBadge = "";
+          if (comic.status) {
+            const statusClass =
+              comic.status === "Đang tiến hành"
+                ? "ongoing"
+                : comic.status === "Hoàn thành"
+                ? "completed"
+                : "hiatus";
+            statusBadge = `<span class="status-badge status-${statusClass}">${comic.status}</span>`;
+          }
+
+          html += `
+            <div class="ranking-item ${rankClass}">
+              <div class="rank-position">${rank}.</div>
+              <img src="${
+                comic.cover_image ||
+                "https://via.placeholder.com/60x85/666/fff?text=" + rank
+              }" 
+                   alt="${comic.title}" class="comic-thumbnail" 
+                   onerror="this.src='https://via.placeholder.com/60x85/666/fff?text=${rank}'">
+              <div class="comic-info">
+                <div class="comic-title">
+                  <a href="/comic/${comic.id}">${comic.title}</a>
+                </div>
+                <div class="comic-author">
+                  <i class="fas fa-user"></i> ${comic.author || "Không rõ"}
+                </div>
+                <div class="comic-stats">
+                  <div class="stat-item">
+                    <i class="fas fa-eye"></i> ${comic.views || 0} lượt xem
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-heart"></i> ${comic.likes || 0} thích
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-list"></i> ${
+                      comic.chapters_count || 0
+                    } chương
+                  </div>
+                  ${statusBadge}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `
+          <div class="text-center p-4">
+            <div class="text-light">
+              <i class="fas fa-info-circle fa-2x mb-3"></i>
+              <p>Chưa có dữ liệu xếp hạng cho ${
+                currentType === "all"
+                  ? "tất cả"
+                  : currentType === "comics"
+                  ? "truyện tranh"
+                  : "truyện chữ"
+              }</p>
+            </div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error("Error loading comic ranking:", error);
+      document.getElementById("ranking-content").innerHTML = `
+        <div class="text-center p-4 text-danger">
+          <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <p>Lỗi khi tải bảng xếp hạng</p>
+        </div>
+      `;
+    }
+  }
+
+  // Initialize page
+  document.addEventListener("DOMContentLoaded", function () {
+    loadComicRanking();
+  });
+</script>
+{% endblock %}

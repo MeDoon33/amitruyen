@@ -1,0 +1,787 @@
+{% extends "base.html" %} {% block title %}Trang Chủ - Truyện Tranh{% endblock
+%} {% block extra_css %}
+<style>
+  /* Toggle Switch Styles */
+  .homepage-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    background: rgba(102, 126, 234, 0.15);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .toggle-switch.compact {
+    width: 260px;
+    height: 56px;
+    padding: 4px;
+  }
+
+  .toggle-switch.bordered {
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    transition: border-color 0.5s ease, box-shadow 0.5s ease,
+      background 0.5s ease;
+  }
+
+  .toggle-switch .slider {
+    position: absolute;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 26px;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(102, 126, 234, 0.4);
+    padding: 0 15px;
+    will-change: transform;
+  }
+
+  .toggle-switch.compact .slider {
+    width: 50%;
+    height: calc(100% - 8px);
+    left: 4px;
+  }
+
+  .toggle-switch .slider i {
+    font-size: 20px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .toggle-switch .slider span {
+    font-size: 16px;
+    transition: opacity 0.3s ease;
+  }
+
+  .toggle-switch.novel-mode {
+    background: rgba(245, 87, 108, 0.2);
+  }
+
+  .toggle-switch.novel-mode .slider {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    transform: translateX(calc(100% - 8px));
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0.4);
+  }
+
+  .toggle-switch.novel-mode .slider i::before {
+    content: "\f02d";
+  }
+
+  .toggle-switch:hover {
+    border-color: rgba(102, 126, 234, 0.6);
+    box-shadow: 0 0 25px rgba(102, 126, 234, 0.15);
+    transform: scale(1.02);
+  }
+
+  .toggle-switch.novel-mode:hover {
+    border-color: rgba(245, 87, 108, 0.6);
+    box-shadow: 0 0 25px rgba(245, 87, 108, 0.15);
+  }
+
+  .toggle-switch:hover .slider {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(102, 126, 234, 0.5);
+  }
+
+  .toggle-switch.novel-mode:hover .slider {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), 0 0 20px rgba(245, 87, 108, 0.5);
+  }
+
+  .toggle-switch:hover .slider i {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  .toggle-switch:active {
+    transform: scale(0.98);
+  }
+
+  .toggle-switch:active .slider {
+    transform: scale(0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-switch.novel-mode:active .slider {
+    transform: translateX(calc(100% - 8px)) scale(0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Ripple effect on click */
+  @keyframes ripple {
+    0% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 15px rgba(102, 126, 234, 0);
+    }
+    100% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+  }
+
+  @keyframes ripple-novel {
+    0% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 0 15px rgba(245, 87, 108, 0);
+    }
+    100% {
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 0 0 rgba(245, 87, 108, 0);
+    }
+  }
+
+  .toggle-switch.animating .slider {
+    animation: ripple 0.6s ease-out;
+  }
+
+  .toggle-switch.novel-mode.animating .slider {
+    animation: ripple-novel 0.6s ease-out;
+  }
+</style>
+{% endblock %} {% block content %}
+
+<!-- Toggle Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2><i class="fas fa-images"></i> Truyện Tranh</h2>
+  <div class="homepage-toggle-wrapper">
+    <div
+      class="toggle-switch compact bordered"
+      id="homepageToggle"
+      onclick="toggleHomepageType()"
+    >
+      <div class="slider"><i class="fas fa-image"></i><span>Tranh</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Main Content -->
+  <div class="col-lg-9 col-md-8">
+    <!-- Featured Comics Section (Truyện Nổi Bật) -->
+    {% if popular_comics %}
+    <section class="featured-section mb-5">
+      <div class="section-header mb-3">
+        <h4><i class="fas fa-fire"></i> Truyện Nổi Bật</h4>
+      </div>
+
+      <!-- Horizontal row with 5 featured comics -->
+      <div class="row g-2">
+        {% for comic in popular_comics[:5] %}
+        <div class="col">
+          <div class="card h-100 shadow-sm featured-card-small">
+            <div class="position-relative">
+              <img
+                src="{{ comic.cover_image }}"
+                class="card-img-top featured-cover-small comic-cover-click"
+                alt="{{ comic.title }}"
+                data-comic-id="{{ comic.id }}"
+              />
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-danger badge-sm">Nổi bật</span>
+              </div>
+            </div>
+            <div class="card-body p-2">
+              <h6
+                class="card-title small text-truncate"
+                title="{{ comic.title }}"
+              >
+                <a
+                  href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                  class="text-decoration-none"
+                  >{{ comic.title }}</a
+                >
+              </h6>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                  <i class="fas fa-eye"></i> {{ comic.views or 0 }}
+                </small>
+                <small class="text-muted">
+                  <i class="fas fa-star"></i> {{ "%.1f"|format(comic.rating or
+                  0) }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Latest Comics Section (Truyện Mới Cập Nhật) -->
+    <section class="latest-section mb-5">
+      <div
+        class="section-header d-flex justify-content-between align-items-center mb-3"
+      >
+        <h4><i class="fas fa-clock"></i> Truyện Mới Cập Nhật</h4>
+        <a
+          href="{{ url_for('comic.get_comics') }}"
+          class="btn btn-outline-primary btn-sm"
+        >
+          Xem tất cả <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+
+      {% if latest_comics %}
+      <div class="row">
+        {% for comic in latest_comics %}
+        <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+          <div class="card h-100 shadow-sm comic-card">
+            <div class="position-relative">
+              <img
+                src="{{ comic.cover_image }}"
+                class="card-img-top comic-cover comic-cover-click"
+                alt="{{ comic.title }}"
+                data-comic-id="{{ comic.id }}"
+              />
+              <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-primary">Tranh</span>
+                {% if comic.status == 'completed' %}
+                <span class="badge bg-success">Hoàn thành</span>
+                {% elif comic.status == 'ongoing' %}
+                <span class="badge bg-info">Đang cập nhật</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="card-body">
+              <h6 class="card-title text-truncate" title="{{ comic.title }}">
+                <a
+                  href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                  class="text-decoration-none"
+                  >{{ comic.title }}</a
+                >
+              </h6>
+              <p class="card-text small text-muted mb-2">
+                <i class="fas fa-user"></i> {{ comic.author or 'Đang cập nhật'
+                }}
+              </p>
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                  <i class="fas fa-eye"></i> {{ comic.views or 0 }}
+                </small>
+                <small class="text-muted">
+                  <i class="fas fa-star"></i> {{ "%.1f"|format(comic.rating or
+                  0) }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+        <i class="fas fa-images fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Chưa có truyện tranh nào.</p>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="col-lg-3 col-md-4">
+    <div class="sidebar sticky-top">
+      <!-- Ranking Comics -->
+      <div class="card ranking-card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-trophy"></i> Bảng Xếp Hạng</h5>
+        </div>
+        <div class="card-body p-0">
+          {% if ranking_comics %} {% for comic in ranking_comics %}
+          <div
+            class="ranking-item d-flex align-items-center p-3 {% if loop.index <= 3 %}rank-{{ loop.index }}{% endif %}"
+          >
+            <div class="rank-position me-3">{{ loop.index }}.</div>
+            <div class="comic-thumbnail-container me-3">
+              <img
+                src="{{ comic.cover_image }}"
+                alt="{{ comic.title }}"
+                class="comic-thumbnail"
+                onerror="this.src='https://via.placeholder.com/50x70/666/fff?text={{ loop.index }}'"
+              />
+            </div>
+            <div class="comic-info flex-grow-1">
+              <div class="comic-title mb-1">
+                <a
+                  href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+                  class="comic-link"
+                >
+                  {{ comic.title }}
+                </a>
+              </div>
+              <div class="comic-stats">
+                <div class="stat-item">
+                  <i class="fas fa-eye"></i> {{ comic.views or 0 }}
+                </div>
+                <div class="stat-item">
+                  <i class="fas fa-list"></i> {{ comic.chapters|length if
+                  comic.chapters else 0 }}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %} {% else %}
+          <div class="no-ranking text-center p-4">
+            <i class="fas fa-info-circle fa-2x mb-3 text-muted"></i>
+            <p class="text-muted">Chưa có dữ liệu xếp hạng</p>
+          </div>
+          {% endif %}
+
+          <div class="ranking-footer p-3 text-center border-top">
+            <a
+              href="{{ url_for('main.comic_ranking') }}"
+              class="btn btn-outline-primary btn-sm"
+            >
+              <i class="fas fa-chevron-right"></i> Xem thêm
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .homepage-toggle .btn {
+    margin-right: 10px;
+    border-radius: 25px;
+    padding: 8px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .homepage-toggle .btn.active {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  }
+
+  .comic-card {
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    border-radius: 10px;
+  }
+
+  .comic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .comic-cover {
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+  }
+
+  /* Featured cards styling */
+  .featured-card {
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.1);
+  }
+
+  .featured-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.2) !important;
+  }
+
+  .featured-cover {
+    height: 280px;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+  }
+
+  /* Small featured cards for 5-column horizontal display */
+  .featured-card-small {
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(255, 0, 0, 0.1);
+  }
+
+  .featured-card-small:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2) !important;
+  }
+
+  .featured-cover-small {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .badge-sm {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Ensure 5 equal columns on all desktop/tablet sizes */
+  .featured-section .row .col {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+  }
+
+  /* Responsive adjustments for 5-column layout */
+  @media (min-width: 768px) {
+    /* Tablet and up: 5 columns */
+    .featured-cover-small {
+      height: 180px;
+    }
+  }
+
+  @media (min-width: 992px) {
+    /* Desktop: 5 columns with larger images */
+    .featured-cover-small {
+      height: 200px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    /* Mobile: Stack in 2-3 columns */
+    .featured-section .row .col {
+      flex: 0 0 50%; /* 2 columns on mobile */
+      max-width: 50%;
+    }
+    .featured-cover-small {
+      height: 160px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* Very small mobile: 2 columns */
+    .featured-cover-small {
+      height: 140px;
+    }
+    .featured-card-small .card-body {
+      padding: 0.5rem !important;
+    }
+    .featured-card-small .card-title {
+      font-size: 0.8rem;
+    }
+  }
+
+  .popular-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+  }
+
+  .popular-card:hover {
+    transform: translateY(-2px);
+  }
+
+  .ranking-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .ranking-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .ranking-item:hover {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    transform: translateX(5px);
+  }
+
+  .ranking-item:last-child {
+    border-bottom: none;
+  }
+
+  .rank-position {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #6c757d;
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .rank-1 {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 215, 0, 0.1),
+      rgba(255, 237, 78, 0.1)
+    );
+    border-left: 4px solid #ffd700;
+  }
+  .rank-1 .rank-position {
+    color: #ffd700;
+  }
+
+  .rank-2 {
+    background: linear-gradient(
+      135deg,
+      rgba(192, 192, 192, 0.1),
+      rgba(229, 229, 229, 0.1)
+    );
+    border-left: 4px solid #c0c0c0;
+  }
+  .rank-2 .rank-position {
+    color: #c0c0c0;
+  }
+
+  .rank-3 {
+    background: linear-gradient(
+      135deg,
+      rgba(205, 127, 50, 0.1),
+      rgba(222, 144, 76, 0.1)
+    );
+    border-left: 4px solid #cd7f32;
+  }
+  .rank-3 .rank-position {
+    color: #cd7f32;
+  }
+
+  .comic-thumbnail {
+    width: 50px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+  }
+
+  .comic-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+
+  .comic-link {
+    color: #333;
+    text-decoration: none;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
+  }
+
+  .comic-link:hover {
+    color: #007bff;
+  }
+
+  .comic-stats {
+    display: flex;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: #6c757d;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .stat-item i {
+    color: #007bff;
+  }
+
+  .ranking-footer {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  }
+
+  .section-header h4 {
+    color: #333;
+    font-weight: 600;
+  }
+
+  .top-3 {
+    background: linear-gradient(135deg, #cd7f32, #daa520);
+  }
+</style>
+
+<!-- Modal hiển thị nhanh chi tiết truyện -->
+<div class="modal fade" id="comicDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="comicModalTitle">Đang tải...</h5>
+        <button
+          type="button"
+          class="btn-close btn-close-white"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <img
+              id="comicModalCover"
+              src=""
+              alt="Cover"
+              class="img-fluid rounded shadow-sm"
+            />
+            <div class="mt-3 d-grid gap-2" id="comicModalActions"></div>
+          </div>
+          <div class="col-md-8">
+            <p class="small text-muted mb-1">
+              <span id="comicModalAuthor"></span>
+            </p>
+            <div id="comicModalMeta" class="mb-2 small"></div>
+            <div id="comicModalDescription" class="mb-3"></div>
+            <div id="comicModalChapters" class="small"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Đóng
+        </button>
+        <a href="#" id="comicModalViewPage" class="btn btn-outline-light"
+          >Trang chi tiết</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function toggleHomepageType() {
+    const toggle = document.getElementById("homepageToggle");
+    const slider = toggle.querySelector(".slider span");
+
+    // Add animation class
+    toggle.classList.add("animating");
+
+    // Toggle mode
+    toggle.classList.toggle("novel-mode");
+
+    // Remove animation class after animation completes
+    setTimeout(() => {
+      toggle.classList.remove("animating");
+    }, 600);
+
+    if (toggle.classList.contains("novel-mode")) {
+      slider.textContent = "Chữ";
+      // Delay redirect for smooth animation
+      setTimeout(() => {
+        window.location.href = "{{ url_for('main.novel_homepage') }}";
+      }, 300);
+    } else {
+      slider.textContent = "Tranh";
+      setTimeout(() => {
+        window.location.href = "{{ url_for('main.comic_homepage') }}";
+      }, 300);
+    }
+  }
+
+  // Xử lý click vào ảnh bìa để mở modal chi tiết nhanh
+  document.addEventListener("DOMContentLoaded", () => {
+    const modalEl = document.getElementById("comicDetailModal");
+    const bsModal = new bootstrap.Modal(modalEl);
+    document.querySelectorAll(".comic-cover-click").forEach((img) => {
+      img.style.cursor = "pointer";
+      img.addEventListener("click", async () => {
+        const comicId = img.getAttribute("data-comic-id");
+        try {
+          const resp = await fetch(`/comics/${comicId}`);
+          const html = await resp.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, "text/html");
+          const title =
+            doc.querySelector("h1")?.textContent?.trim() || "Không rõ";
+          const coverSrc =
+            doc
+              .querySelector(".cover-link img, .row .col-md-4 img")
+              ?.getAttribute("src") || img.src;
+          const desc =
+            doc.querySelector(".mb-3 p")?.textContent?.trim() ||
+            "Chưa có mô tả.";
+          const ratingText =
+            doc.querySelector(".star-rating .ms-2")?.textContent?.trim() || "";
+          const viewsText =
+            [...doc.querySelectorAll(".mb-3 p strong")]
+              ?.find((el) => el.textContent.includes("Views"))
+              ?.nextSibling?.textContent?.trim() || "";
+          const chaptersLinks = [
+            ...doc.querySelectorAll(".list-group .list-group-item"),
+          ];
+          const chapterBadges = chaptersLinks
+            .slice(0, 5)
+            .map((a) => a.textContent.trim());
+          const earliestLink =
+            doc.querySelector(".cover-link")?.getAttribute("href") ||
+            chaptersLinks[0]?.getAttribute("href");
+          const latestLink = chaptersLinks.length
+            ? chaptersLinks[chaptersLinks.length - 1].getAttribute("href")
+            : null;
+
+          // Tìm nút Đọc tiếp trong trang chi tiết (nếu người dùng đã đọc)
+          const resumeBtn = [...doc.querySelectorAll("a.btn")].find((a) =>
+            /Đọc tiếp/i.test(a.textContent)
+          );
+          const resumeLink = resumeBtn?.getAttribute("href");
+
+          // Populate modal
+          document.getElementById("comicModalTitle").textContent = title;
+          document.getElementById("comicModalCover").src = coverSrc;
+          document.getElementById("comicModalDescription").textContent = desc;
+          document.getElementById("comicModalAuthor").textContent =
+            doc.querySelector(".lead")?.textContent?.trim() || "";
+          document.getElementById("comicModalMeta").innerHTML = ratingText
+            ? `<span class='me-3'><i class='fas fa-star'></i> ${ratingText}</span>`
+            : "";
+          document.getElementById(
+            "comicModalViewPage"
+          ).href = `/comics/${comicId}`;
+
+          const actions = document.getElementById("comicModalActions");
+          actions.innerHTML = "";
+          if (earliestLink) {
+            actions.innerHTML += `<a href='${earliestLink}' class='btn btn-primary w-100'><i class='fas fa-play'></i> Đọc từ đầu</a>`;
+          }
+          if (resumeLink) {
+            actions.innerHTML += `<a href='${resumeLink}' class='btn btn-warning w-100'><i class='fas fa-redo'></i> Đọc tiếp</a>`;
+          }
+          if (latestLink && latestLink !== earliestLink) {
+            actions.innerHTML += `<a href='${latestLink}' class='btn btn-outline-info w-100'><i class='fas fa-forward'></i> Chương mới nhất</a>`;
+          }
+
+          if (chapterBadges.length) {
+            document.getElementById("comicModalChapters").innerHTML =
+              "<strong>Chương gần đây:</strong><br>" +
+              chapterBadges
+                .map(
+                  (c) =>
+                    `<span class="badge bg-secondary me-1 mb-1">${c}</span>`
+                )
+                .join("");
+          } else {
+            document.getElementById("comicModalChapters").innerHTML =
+              '<span class="text-muted">Chưa có chương.</span>';
+          }
+          bsModal.show();
+        } catch (e) {
+          console.error(e);
+          window.location.href = `/comics/${comicId}`; // Fallback
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

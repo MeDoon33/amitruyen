@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Manage Users</h2>
+  <table class="table table-bordered table-dark table-hover">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.get_role_display() }}</td>
+        <td>
+          {% if user.username != 'admin' %}
+          <form method="post" style="display:inline-block;">
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <select name="role" class="form-select form-select-sm d-inline w-auto">
+              <option value="reader" {% if user.role == 'reader' %}selected{% endif %}>Đọc giả</option>
+              <option value="uploader" {% if user.role == 'uploader' %}selected{% endif %}>Người đăng truyện</option>
+              <option value="moderator" {% if user.role == 'moderator' %}selected{% endif %}>Kiểm duyệt</option>
+              <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Set Role</button>
+          </form>
+          {% else %}
+            <span class="text-warning">Super Admin</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

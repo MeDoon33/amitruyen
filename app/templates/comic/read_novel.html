@@ -1,0 +1,205 @@
+{% extends "base.html" %} {% block content %}
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('main.novel_homepage') }}">Trang chủ</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+              >{{ comic.title }}</a
+            >
+          </li>
+          <li class="breadcrumb-item active">
+            Chương {{ chapter.chapter_number }}: {{ chapter.title }}
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <h1 class="text-center mb-4">{{ chapter.title }}</h1>
+
+      <div class="chapter-navigation text-center mb-4">
+        {% if prev_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
+          class="btn btn-outline-primary"
+        >
+          <i class="fas fa-chevron-left"></i> Chương trước
+        </a>
+        {% endif %}
+
+        <a
+          href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+          class="btn btn-outline-secondary mx-2"
+        >
+          Mục lục
+        </a>
+
+        {% if next_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=next_chapter.chapter_number) }}"
+          class="btn btn-outline-primary"
+        >
+          Chương sau <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="reading-controls text-center mb-3">
+        <div class="btn-group" role="group" aria-label="Chế độ đọc">
+          <button
+            id="dayModeBtn"
+            type="button"
+            class="btn btn-sm btn-light active"
+            onclick="setReadingMode('day')"
+          >
+            <i class="fas fa-sun"></i> Ban ngày
+          </button>
+          <button
+            id="nightModeBtn"
+            type="button"
+            class="btn btn-sm btn-dark"
+            onclick="setReadingMode('night')"
+          >
+            <i class="fas fa-moon"></i> Ban đêm
+          </button>
+        </div>
+        <div class="mt-2 small text-muted">
+          Chuyển đổi để giảm mỏi mắt khi đọc truyện chữ.
+        </div>
+      </div>
+
+      <div
+        id="chapterContent"
+        class="chapter-content"
+        style="
+          font-size: 1.1em;
+          line-height: 1.8;
+          max-width: 800px;
+          margin: 0 auto;
+        "
+      >
+        {% for paragraph in chapter.content.split('\n') %} {% if
+        paragraph.strip() %}
+        <p>{{ paragraph }}</p>
+        {% endif %} {% endfor %}
+      </div>
+
+      <div class="chapter-navigation text-center mt-4">
+        {% if prev_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
+          class="btn btn-outline-primary"
+        >
+          <i class="fas fa-chevron-left"></i> Chương trước
+        </a>
+        {% endif %}
+
+        <a
+          href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+          class="btn btn-outline-secondary mx-2"
+        >
+          Mục lục
+        </a>
+
+        {% if next_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=next_chapter.chapter_number) }}"
+          class="btn btn-outline-primary"
+        >
+          Chương sau <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .chapter-content {
+    font-family: "Noto Serif", serif;
+    color: #333;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.4s ease, color 0.3s ease;
+  }
+
+  /* Night mode styles */
+  .night-mode .chapter-content {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  }
+  .night-mode .chapter-content p {
+    color: #d0d0d0;
+  }
+  .night-mode body,
+  body.night-mode {
+    background-color: #0b0b0d;
+  }
+  .night-mode .breadcrumb a {
+    color: #9ecbff;
+  }
+  .night-mode .reading-controls .btn-light {
+    background: #343a40;
+    color: #ddd;
+    border-color: #444;
+  }
+  .night-mode .reading-controls .btn-dark {
+    background: #212529;
+  }
+
+  .reading-controls .btn {
+    transition: all 0.25s ease;
+  }
+  .reading-controls .btn.active {
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+  }
+
+  .chapter-content p {
+    margin-bottom: 1.5rem;
+    text-align: justify;
+  }
+
+  @media (max-width: 768px) {
+    .chapter-content {
+      font-size: 1em;
+      padding: 1rem;
+    }
+  }
+</style>
+<script>
+  // Apply mode from localStorage on load
+  document.addEventListener("DOMContentLoaded", function () {
+    const saved = localStorage.getItem("novelReadingMode") || "day";
+    setReadingMode(saved, true);
+  });
+
+  function setReadingMode(mode, initial = false) {
+    const root = document.documentElement; // <html>
+    if (mode === "night") {
+      root.classList.add("night-mode");
+    } else {
+      root.classList.remove("night-mode");
+    }
+    // Button states
+    document
+      .getElementById("dayModeBtn")
+      .classList.toggle("active", mode === "day");
+    document
+      .getElementById("nightModeBtn")
+      .classList.toggle("active", mode === "night");
+    if (!initial) {
+      localStorage.setItem("novelReadingMode", mode);
+    }
+  }
+</script>
+{% endblock %}

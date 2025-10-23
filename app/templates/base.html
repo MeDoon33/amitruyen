@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      .star-rating .star {
+        font-size: 1.5em;
+        color: #ffd700;
+        margin-right: 2px;
+        opacity: 1;
+      }
+      .star-rating .star.empty {
+        color: #444;
+        opacity: 0.3;
+      }
+      .star-rating .star.half {
+        color: #ffd700;
+        opacity: 0.6;
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Comic Reader{% endblock %}</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container">
+        <a class="navbar-brand" href="{% if comic is defined and comic.content_type == 'novel' %}{{ url_for('main.novel_homepage') }}{% else %}{{ url_for('main.comic_homepage') }}{% endif %}"
+          >Trang Chủ</a
+        >
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('comic.get_comics') }}"
+                >Tìm Truyện</a
+              >
+            </li>
+
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="rankingDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="fas fa-trophy"></i> Bảng Xếp Hạng
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="rankingDropdown">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('main.comic_ranking') }}"
+                  >
+                    <i class="fas fa-book-open"></i> Xếp Hạng Truyện
+                  </a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('progression.stats_page') }}"
+                  >
+                    <i class="fas fa-users"></i> Xếp Hạng Thành Viên
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            {% if current_user.is_authenticated and (current_user.is_admin() or
+            current_user.is_uploader()) %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin.upload_comic') }}"
+                >Đăng Truyện</a
+              >
+            </li>
+            {% endif %} {% if current_user.is_authenticated and
+            current_user.is_admin() %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('admin.manage_users') }}"
+                >Quản lý Thành viên</a
+              >
+            </li>
+            {% endif %} {% if current_user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('main.profile') }}"
+                >Tài Khoản Của Bạn</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('progression.stats_page') }}"
+                ><i class="fas fa-trophy"></i> Con đường tu luyện</a
+              >
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('auth.login') }}"
+                >Đăng Nhập</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('auth.register') }}"
+                >Đăng Kí</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+
+          <!-- Advanced Search Form -->
+          <div class="search-container position-relative">
+            <form
+              class="d-flex"
+              action="{{ url_for('comic.get_comics') }}"
+              method="GET"
+              id="search-form"
+            >
+              <div class="input-group">
+                <input
+                  class="form-control"
+                  type="search"
+                  name="search"
+                  id="search-input"
+                  placeholder="Tìm kiếm truyện, tác giả, thể loại..."
+                  autocomplete="off"
+                />
+                <button
+                  class="btn btn-outline-light dropdown-toggle"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fas fa-filter"></i>
+                </button>
+                <ul
+                  class="dropdown-menu dropdown-menu-end p-3 advanced-search-dropdown"
+                  style="min-width: 400px"
+                >
+                  <li>
+                    <h6 class="dropdown-header">Tìm kiếm nâng cao</h6>
+                  </li>
+                  <li class="mb-2">
+                    <label class="form-label mb-1">Tên truyện:</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      name="title"
+                      placeholder="Nhập tên truyện"
+                    />
+                  </li>
+                  <li class="mb-2">
+                    <label class="form-label mb-1">Tác giả:</label>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      name="author"
+                      placeholder="Nhập tên tác giả"
+                    />
+                  </li>
+                  <li class="mb-2">
+                    <label class="form-label mb-1">Thể loại:</label>
+                    <select class="form-select form-select-sm" name="genre">
+                      <option value="">Tất cả thể loại</option>
+                      <option value="Action">Hành động</option>
+                      <option value="Romance">Lãng mạn</option>
+                      <option value="Comedy">Hài hước</option>
+                      <option value="Drama">Chính kịch</option>
+                      <option value="Fantasy">Giả tưởng</option>
+                      <option value="Shounen">Shounen</option>
+                      <option value="Seinen">Seinen</option>
+                      <option value="Shoujo">Shoujo</option>
+                    </select>
+                  </li>
+                  <li class="mb-2">
+                    <label class="form-label mb-1">Trạng thái:</label>
+                    <select class="form-select form-select-sm" name="status">
+                      <option value="">Tất cả trạng thái</option>
+                      <option value="ongoing">Đang cập nhật</option>
+                      <option value="completed">Hoàn thành</option>
+                      <option value="hiatus">Tạm dừng</option>
+                    </select>
+                  </li>
+                  <li>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                      <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                  </li>
+                </ul>
+                <button class="btn btn-outline-light" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </form>
+
+            <!-- Search suggestions dropdown -->
+            <div
+              id="search-suggestions"
+              class="dropdown-menu shadow-lg"
+              style="
+                display: none;
+                width: 100%;
+                max-height: 300px;
+                overflow-y: auto;
+              "
+            >
+              <!-- Dynamic search results will be inserted here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mt-4">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <style>
+      /* Advanced search dropdown adjustments to prevent overlap */
+      .advanced-search-dropdown {
+        width: 400px;
+        max-width: 98vw;
+        max-height: 620px;
+        z-index: 1200 !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18),
+          0 1.5px 6px rgba(0, 0, 0, 0.1);
+        background: #fff;
+      }
+      .advanced-search-dropdown::-webkit-scrollbar {
+        width: 6px;
+      }
+      .advanced-search-dropdown::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .advanced-search-dropdown::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+      }
+      .ranking-snapshot-wrapper {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.5rem;
+      }
+      .ranking-snapshot-scroll {
+        max-height: 260px;
+        overflow-y: auto;
+      }
+      .ranking-snapshot-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 4px;
+        border-radius: 6px;
+      }
+      .ranking-snapshot-item:hover {
+        background: #f8f9fa;
+      }
+      .ranking-snapshot-thumb {
+        width: 40px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 8px;
+      }
+      .ranking-snapshot-rank {
+        width: 22px;
+        text-align: center;
+        font-weight: 600;
+        margin-right: 6px;
+        font-size: 0.75rem;
+      }
+      .ranking-snapshot-title {
+        flex: 1;
+        line-height: 1.2;
+        font-size: 0.72rem;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .ranking-snapshot-meta {
+        font-size: 0.6rem;
+        color: #6c757d;
+      }
+      @media (max-width: 576px) {
+        .advanced-search-dropdown {
+          width: 100vw;
+          left: 0 !important;
+          right: 0 !important;
+        }
+      }
+      .advanced-search-dropdown::-webkit-scrollbar {
+        width: 6px;
+      }
+      .advanced-search-dropdown::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      .advanced-search-dropdown::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+      }
+      .ranking-snapshot-wrapper {
+        border-top: 1px solid #e9ecef;
+        padding-top: 0.5rem;
+      }
+      .ranking-snapshot-scroll {
+        max-height: 260px;
+        overflow-y: auto;
+      }
+      .ranking-snapshot-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 4px;
+        border-radius: 6px;
+      }
+      .ranking-snapshot-item:hover {
+        background: #f8f9fa;
+      }
+      .ranking-snapshot-thumb {
+        width: 40px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 8px;
+      }
+      .ranking-snapshot-rank {
+        width: 22px;
+        text-align: center;
+        font-weight: 600;
+        margin-right: 6px;
+        font-size: 0.75rem;
+      }
+      .ranking-snapshot-title {
+        flex: 1;
+        line-height: 1.2;
+        font-size: 0.72rem;
+        font-weight: 500;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+      }
+      .ranking-snapshot-meta {
+        font-size: 0.6rem;
+        color: #6c757d;
+      }
+      @media (max-width: 576px) {
+        .advanced-search-dropdown {
+          width: 100vw;
+          left: 0 !important;
+          right: 0 !important;
+        }
+      }
+    </style>
+    <script>
+      // Lightweight ranking snapshot load
+      document.addEventListener("DOMContentLoaded", () => {
+        const snapshotEl = document.getElementById("rankingSnapshot");
+        if (!snapshotEl) return;
+        fetch("/api/ranking/thang")
+          .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+          .then((data) => {
+            const items = Array.isArray(data?.data)
+              ? data.data.slice(0, 5)
+              : Array.isArray(data)
+              ? data.slice(0, 5)
+              : [];
+            if (!items.length) {
+              snapshotEl.innerHTML =
+                '<div class="text-center py-2 text-muted">Không có dữ liệu</div>';
+              return;
+            }
+            snapshotEl.innerHTML = items
+              .map((c, i) => {
+                const title =
+                  c.title?.length > 30 ? c.title.slice(0, 30) + "…" : c.title;
+                const views = (c.views || 0).toLocaleString();
+                const chapters = c.chapters_count || c.chapters?.length || 0;
+                return `<div class='ranking-snapshot-item'>
+                <div class='ranking-snapshot-rank ${
+                  i < 3 ? "text-warning" : "text-secondary"
+                }'>${i + 1}</div>
+                <img src='${c.cover_image}' alt='${
+                  c.title
+                }' class='ranking-snapshot-thumb' onerror="this.src='https://via.placeholder.com/40x56?text=${
+                  i + 1
+                }'" />
+                <div class='ranking-snapshot-title' title='${
+                  c.title
+                }'>${title}</div>
+                <div class='ranking-snapshot-meta ms-2'><i class='fas fa-eye'></i> ${views} · <i class='fas fa-list'></i> ${chapters}</div>
+              </div>`;
+              })
+              .join("");
+          })
+          .catch((err) => {
+            snapshotEl.innerHTML =
+              '<div class="text-center py-2 text-muted">Lỗi tải xếp hạng</div>';
+            console.error("Ranking snapshot error", err);
+          });
+      });
+    </script>
+
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

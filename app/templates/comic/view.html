@@ -1,0 +1,351 @@
+{% extends "base.html" %} {% block title %}{{ comic.title }}{% endblock %} {%
+block content %}
+<div class="row">
+  <div class="col-md-4">
+    {% if earliest_chapter %}
+    <a
+      href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=earliest_chapter.chapter_number) }}"
+      class="cover-link"
+      title="Đọc từ Chương {{ earliest_chapter.chapter_number }}"
+    >
+      <img
+        src="{{ comic.cover_image }}"
+        class="img-fluid rounded shadow-sm"
+        alt="{{ comic.title }}"
+        style="transition: transform 0.3s ease, box-shadow 0.3s ease"
+      />
+    </a>
+    <small class="text-muted d-block mt-2"
+      ><i class="fas fa-mouse-pointer"></i> Nhấn vào ảnh bìa để đọc từ chương
+      đầu tiên.</small
+    >
+    {% else %}
+    <img
+      src="{{ comic.cover_image }}"
+      class="img-fluid rounded"
+      alt="{{ comic.title }}"
+    />
+    <small class="text-muted d-block mt-2">Chưa có chương nào được đăng.</small>
+    {% endif %}
+  </div>
+  <div class="col-md-8">
+    <h1>{{ comic.title }}</h1>
+    <p class="lead">by {{ comic.author }}</p>
+
+    <div class="mb-3">
+      <span class="badge bg-primary">{{ comic.status }}</span>
+      <span class="badge bg-secondary">{{ comic.genre }}</span>
+      {% if comic.tags %} {% for tag in comic.tags.split(',') %}
+      <span class="badge bg-info">{{ tag }}</span>
+      {% endfor %} {% endif %}
+    </div>
+
+    <div class="mb-3">
+      <p>{{ comic.description }}</p>
+    </div>
+
+    <div class="mb-3">
+      <p>
+        <strong>Uploaded:</strong> {{ comic.created_at.strftime('%Y-%m-%d')
+        }}<br />
+        <strong>Last Updated:</strong> {{ comic.updated_at.strftime('%Y-%m-%d')
+        }}<br />
+        <strong>Rating:</strong>
+        <span class="star-rating">
+          {% set full_stars = comic.rating|round(0, 'floor')|int %} {% set
+          half_star = 1 if comic.rating - full_stars >= 0.5 else 0 %} {% set
+          empty_stars = 5 - full_stars - half_star %} {% for i in
+          range(full_stars) %}
+          <span class="star full">&#9733;</span>
+          {% endfor %} {% if half_star %}
+          <span class="star half">&#9733;</span>
+          {% endif %} {% for i in range(empty_stars|int) %}
+          <span class="star empty">&#9733;</span>
+          {% endfor %}
+          <span class="ms-2"
+            >{{ "%.1f"|format(comic.rating) }} / 5.0 ({{ comic.rating_count }}
+            votes)</span
+          >
+        </span>
+        <br />
+        <strong>Views:</strong> {{ comic.views }}<br />
+        <strong>Followers:</strong> {{ comic.follow_count or 0 }}
+      </p>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="mb-3">
+      <form
+        id="star-rating-form"
+        method="post"
+        action="{{ url_for('comic.rate_comic', comic_id=comic.id) }}"
+        class="mt-2"
+      >
+        <label class="form-label"
+          >Đánh giá của bạn: {% if user_rating %}<span class="text-muted"
+            >(Bạn đã chọn {{ user_rating }} sao)</span
+          >{% endif %}</label
+        >
+        <div
+          id="star-input"
+          class="star-rating-input"
+          style="font-size: 2em; cursor: pointer"
+        >
+          {% for i in range(1,6) %}
+          <span
+            class="star-input"
+            data-value="{{ i }}"
+            data-user-rating="{{ user_rating or 0 }}"
+            >&#9733;</span
+          >
+          {% endfor %}
+        </div>
+        <input
+          type="hidden"
+          name="rating"
+          id="rating-value"
+          value="{{ user_rating or '' }}"
+          required
+        />
+      </form>
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const stars = document.querySelectorAll("#star-input .star-input");
+          const ratingInput = document.getElementById("rating-value");
+          const form = document.getElementById("star-rating-form");
+
+          // Initialize star display based on current user rating
+          const userRating =
+            parseInt(stars[0].getAttribute("data-user-rating")) || 0;
+          stars.forEach((star) => {
+            const starValue = parseInt(star.getAttribute("data-value"));
+            if (starValue <= userRating) {
+              star.style.color = "#ffd700";
+              star.style.opacity = "1";
+            } else {
+              star.style.color = "#444";
+              star.style.opacity = "0.3";
+            }
+          });
+
+          stars.forEach((star) => {
+            star.addEventListener("click", function () {
+              const val = this.getAttribute("data-value");
+              ratingInput.value = val;
+              stars.forEach((s) => {
+                s.style.color =
+                  parseInt(s.getAttribute("data-value")) <= val
+                    ? "#ffd700"
+                    : "#444";
+                s.style.opacity =
+                  parseInt(s.getAttribute("data-value")) <= val ? "1" : "0.3";
+              });
+              form.submit();
+            });
+          });
+        });
+      </script>
+
+      <!-- Action buttons -->
+      <div class="mt-3">
+        {% if earliest_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=earliest_chapter.chapter_number) }}"
+          class="btn btn-primary"
+          ><i class="fas fa-play"></i> Đọc từ đầu</a
+        >
+        {% endif %} {% if resume_chapter %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=resume_chapter.chapter_number) }}"
+          class="btn btn-outline-success ms-2"
+          ><i class="fas fa-redo"></i> Đọc tiếp (Ch. {{
+          resume_chapter.chapter_number }})</a
+        >
+        {% endif %} {% if latest_chapter and latest_chapter != earliest_chapter
+        %}
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=latest_chapter.chapter_number) }}"
+          class="btn btn-outline-info ms-2"
+          ><i class="fas fa-forward"></i> Chương mới nhất ({{
+          latest_chapter.chapter_number }})</a
+        >
+        {% endif %} {% if current_user.is_authenticated %}
+        <form
+          method="post"
+          action="{{ url_for('comic.toggle_follow', comic_id=comic.id) }}"
+          style="display: inline"
+        >
+          {% if is_following %}
+          <button type="submit" class="btn btn-outline-danger ms-2">
+            <i class="fas fa-heart-broken"></i> Bỏ theo dõi
+          </button>
+          {% else %}
+          <button type="submit" class="btn btn-danger ms-2">
+            <i class="fas fa-heart"></i> Theo dõi
+          </button>
+          {% endif %}
+        </form>
+        {% else %}
+        <a
+          href="{{ url_for('auth.login') }}"
+          class="btn btn-outline-secondary ms-2"
+        >
+          <i class="fas fa-heart"></i> Đăng nhập để theo dõi
+        </a>
+        {% endif %}
+      </div>
+
+      {% if current_user.is_admin() or current_user.is_moderator() or
+      (comic.uploader_id == current_user.id and current_user.role == 'uploader')
+      %}
+      <div class="mt-3">
+        <a
+          href="{{ url_for('admin.add_chapter', comic_id=comic.id) }}"
+          class="btn btn-success"
+          >Thêm Chương</a
+        >
+        <a
+          href="{{ url_for('admin.edit_comic', comic_id=comic.id) }}"
+          class="btn btn-warning ms-2"
+          >Chỉnh Sửa Truyện</a
+        >
+        <form
+          method="post"
+          action="{{ url_for('admin.delete_comic', comic_id=comic.id) }}"
+          style="display: inline"
+          onsubmit="return confirm('Bạn có chắc muốn xóa truyện này?');"
+        >
+          <button type="submit" class="btn btn-danger ms-2">Xóa Truyện</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <h2>Chapters</h2>
+    <div class="list-group">
+      {% for chapter in chapters %}
+      <div class="d-flex align-items-center">
+        <a
+          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=chapter.chapter_number) }}"
+          class="list-group-item list-group-item-action flex-grow-1"
+        >
+          Chapter {{ chapter.chapter_number }} {% if chapter.title %}- {{
+          chapter.title }}{% endif %}
+          <span class="badge bg-primary rounded-pill"
+            >{{ chapter.views }} views</span
+          >
+        </a>
+        {% if current_user.is_authenticated and ( current_user.is_moderator() or
+        (comic.uploader_id == current_user.id and current_user.role ==
+        'uploader') ) %}
+        <a
+          href="{{ url_for('admin.edit_chapter', chapter_id=chapter.id) }}"
+          class="btn btn-sm btn-outline-warning ms-2"
+          >Edit</a
+        >
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Comments Section -->
+<div class="row mt-5">
+  <div class="col-12">
+    <h3>Bình luận</h3>
+
+    <!-- Comment Form -->
+    {% if current_user.is_authenticated %}
+    <div class="mb-4">
+      <form
+        method="POST"
+        action="{{ url_for('comic.add_comment', comic_id=comic.id) }}"
+      >
+        <div class="mb-3">
+          <div class="d-flex align-items-start">
+            <img
+              src="{{ current_user.get_avatar_url() }}"
+              alt="{{ current_user.get_display_name() }}"
+              class="rounded-circle me-3"
+              style="width: 40px; height: 40px; object-fit: cover"
+            />
+            <div class="flex-grow-1">
+              <textarea
+                class="form-control"
+                name="content"
+                rows="3"
+                placeholder="Viết bình luận của bạn..."
+                required
+              ></textarea>
+              <button type="submit" class="btn btn-primary mt-2">
+                Đăng bình luận
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+      <a href="{{ url_for('auth.login') }}">Đăng nhập</a> để viết bình luận.
+    </div>
+    {% endif %}
+
+    <!-- Comments List -->
+    <div class="comments-list">
+      {% if comments %} {% for comment in comments %}
+      <div class="comment-item border-bottom py-3">
+        <div class="d-flex align-items-start">
+          <img
+            src="{{ comment.user.get_avatar_url() }}"
+            alt="{{ comment.user.get_display_name() }}"
+            class="rounded-circle me-3"
+            style="width: 40px; height: 40px; object-fit: cover"
+          />
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center mb-1">
+              <strong class="me-2"
+                >{{ comment.user.get_display_name_with_styled_title() | safe
+                }}</strong
+              >
+              <small class="text-muted"
+                >{{ comment.created_at.strftime('%d/%m/%Y %H:%M') }}</small
+              >
+            </div>
+            <p class="mb-0">{{ comment.content }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <div class="text-center text-muted py-4">
+        <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  // Optional subtle hover effect for cover link
+  document.addEventListener("DOMContentLoaded", function () {
+    const cover = document.querySelector(".cover-link img");
+    if (cover) {
+      cover.addEventListener("mouseenter", () => {
+        cover.style.transform = "scale(1.03)";
+        cover.style.boxShadow = "0 8px 20px rgba(0,0,0,0.35)";
+      });
+      cover.addEventListener("mouseleave", () => {
+        cover.style.transform = "scale(1)";
+        cover.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+      });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %} {% block title %}Thêm Chương Truyện Chữ{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 class="my-4">Thêm Chương cho "{{ comic.title }}"</h1>
+  <p class="text-muted"><i class="fas fa-book"></i> Truyện Chữ</p>
+
+  <form
+    method="POST"
+    action="{{ url_for('admin.add_chapter', comic_id=comic.id) }}"
+  >
+    <div class="mb-3">
+      <label for="chapter_number" class="form-label">Số Chương</label>
+      <input
+        type="number"
+        step="0.1"
+        class="form-control"
+        id="chapter_number"
+        name="chapter_number"
+        required
+      />
+      <small class="form-text text-muted">Ví dụ: 1, 1.5, 2, etc.</small>
+    </div>
+
+    <div class="mb-3">
+      <label for="title" class="form-label">Tiêu Đề Chương (tùy chọn)</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        placeholder="Ví dụ: Khởi Đầu Hành Trình"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="content" class="form-label">Nội Dung Chương</label>
+      <textarea
+        class="form-control"
+        id="content"
+        name="content"
+        rows="20"
+        required
+        placeholder="Nhập nội dung chương truyện chữ tại đây...
+
+Bạn có thể chia đoạn văn bằng cách xuống dòng.
+
+Hỗ trợ văn bản thuần (plain text)."
+        style="
+          font-family: 'Segoe UI', Arial, sans-serif;
+          font-size: 14px;
+          line-height: 1.8;
+        "
+      ></textarea>
+      <small class="form-text text-muted">
+        <i class="fas fa-info-circle"></i> Nhập toàn bộ nội dung chương. Mỗi
+        đoạn văn nên cách nhau 1 dòng trống.
+      </small>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save"></i> Thêm Chương
+      </button>
+      <a
+        href="{{ url_for('comic.view_comic', comic_id=comic.id) }}"
+        class="btn btn-secondary"
+      >
+        <i class="fas fa-times"></i> Hủy
+      </a>
+    </div>
+  </form>
+</div>
+
+<style>
+  #content {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1.8;
+  }
+
+  #content:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  }
+</style>
+
+<script>
+  // Auto-save draft to localStorage
+  const contentTextarea = document.getElementById('content');
+  const comicId = {{ comic.id }};
+  const draftKey = `novel_chapter_draft_${comicId}`;
+
+  // Load draft on page load
+  const savedDraft = localStorage.getItem(draftKey);
+  if (savedDraft && !contentTextarea.value) {
+    if (confirm('Phát hiện bản nháp đã lưu. Bạn có muốn khôi phục không?')) {
+      contentTextarea.value = savedDraft;
+    }
+  }
+
+  // Auto-save every 30 seconds
+  let autoSaveTimer;
+  contentTextarea.addEventListener('input', function() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(function() {
+      if (contentTextarea.value.trim()) {
+        localStorage.setItem(draftKey, contentTextarea.value);
+        console.log('Draft auto-saved');
+      }
+    }, 30000); // 30 seconds
+  });
+
+  // Save on form submit and clear draft
+  document.querySelector('form').addEventListener('submit', function() {
+    localStorage.removeItem(draftKey);
+  });
+
+  // Warn before leaving if there's unsaved content
+  window.addEventListener('beforeunload', function(e) {
+    if (contentTextarea.value.trim() && contentTextarea.value !== savedDraft) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+</script>
+{% endblock %}

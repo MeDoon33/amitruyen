@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toggle Switch Demo - Truyện Tranh/Chữ</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .demo-container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 28px;
+      }
+
+      /* Toggle Switch Container */
+      .toggle-container {
+        display: flex;
+        justify-content: center;
+        margin: 30px 0;
+      }
+
+      /* Toggle Switch */
+      .toggle-switch {
+        position: relative;
+        width: 300px;
+        height: 60px;
+        background: #e0e0e0;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      /* Background Labels */
+      .toggle-switch .switch-labels {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+      }
+
+      .toggle-switch .switch-label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        z-index: 1;
+        padding: 0 10px;
+      }
+
+      .toggle-switch .switch-label i {
+        margin-right: 8px;
+        font-size: 18px;
+      }
+
+      /* Sliding Button */
+      .toggle-switch .slider {
+        position: absolute;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 30px;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 15px;
+        z-index: 2;
+      }
+
+      .toggle-switch .slider i {
+        margin-right: 8px;
+        font-size: 18px;
+      }
+
+      /* Default state: Truyện Tranh (left) */
+      .toggle-switch .slider {
+        left: 0;
+      }
+
+      .toggle-switch .switch-label.comic {
+        color: white;
+      }
+
+      .toggle-switch .switch-label.novel {
+        color: #666;
+      }
+
+      /* Active state: Truyện Chữ (right) */
+      .toggle-switch.novel-mode .slider {
+        left: 50%;
+      }
+
+      .toggle-switch.novel-mode .switch-label.comic {
+        color: #666;
+      }
+
+      .toggle-switch.novel-mode .switch-label.novel {
+        color: white;
+      }
+
+      /* Info Display */
+      .info-display {
+        text-align: center;
+        margin-top: 40px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .info-display h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 20px;
+      }
+
+      .info-display p {
+        color: #666;
+        font-size: 16px;
+        margin: 5px 0;
+      }
+
+      .info-display .mode-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-top: 10px;
+      }
+
+      /* Variations Section */
+      .variations {
+        margin-top: 50px;
+        padding-top: 30px;
+        border-top: 2px solid #e0e0e0;
+      }
+
+      .variations h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 22px;
+      }
+
+      .variation-item {
+        margin-bottom: 30px;
+      }
+
+      .variation-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 10px;
+        font-size: 14px;
+      }
+
+      /* Variation 2: Smaller, Compact */
+      .toggle-switch.compact {
+        width: 200px;
+        height: 45px;
+      }
+
+      .toggle-switch.compact .switch-label,
+      .toggle-switch.compact .slider {
+        font-size: 13px;
+      }
+
+      .toggle-switch.compact .switch-label i,
+      .toggle-switch.compact .slider i {
+        font-size: 14px;
+      }
+
+      /* Variation 3: Different Colors */
+      .toggle-switch.orange .slider {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+      }
+
+      /* Variation 4: With Border */
+      .toggle-switch.bordered {
+        background: white;
+        border: 3px solid #667eea;
+      }
+
+      .toggle-switch.bordered .switch-label.comic,
+      .toggle-switch.bordered .switch-label.novel {
+        color: #667eea;
+      }
+
+      .toggle-switch.bordered.novel-mode .switch-label.comic {
+        color: #667eea;
+      }
+
+      .toggle-switch.bordered.novel-mode .switch-label.novel {
+        color: white;
+      }
+
+      /* Code Display */
+      .code-section {
+        margin-top: 30px;
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 20px;
+        border-radius: 10px;
+        overflow-x: auto;
+      }
+
+      .code-section h3 {
+        color: #50fa7b;
+        margin-bottom: 15px;
+        font-size: 16px;
+      }
+
+      .code-section pre {
+        margin: 0;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .toggle-switch {
+          width: 250px;
+          height: 50px;
+        }
+
+        .toggle-switch .switch-label,
+        .toggle-switch .slider {
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <h1>🎨 Toggle Switch Demo</h1>
+
+      <!-- Main Demo -->
+      <div class="toggle-container">
+        <div class="toggle-switch" id="mainToggle" onclick="toggleMode(this)">
+          <div class="switch-labels">
+            <div class="switch-label comic">
+              <i class="fas fa-image"></i>
+              <span>Truyện Tranh</span>
+            </div>
+            <div class="switch-label novel">
+              <i class="fas fa-book"></i>
+              <span>Truyện Chữ</span>
+            </div>
+          </div>
+          <div class="slider">
+            <i class="fas fa-image"></i>
+            <span>Truyện Tranh</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Display -->
+      <div class="info-display" id="infoDisplay">
+        <h3>Chế độ hiện tại</h3>
+        <p class="mode-badge">📚 Truyện Tranh</p>
+        <p style="margin-top: 15px; font-size: 14px">
+          Click vào switch để chuyển đổi giữa Truyện Tranh và Truyện Chữ
+        </p>
+      </div>
+
+      <!-- Variations -->
+      <div class="variations">
+        <h2>✨ Các Biến Thể</h2>
+
+        <!-- Variation 1: Compact -->
+        <div class="variation-item">
+          <div class="variation-label">1. Kích thước nhỏ gọn</div>
+          <div class="toggle-container">
+            <div class="toggle-switch compact" onclick="toggleMode(this)">
+              <div class="switch-labels">
+                <div class="switch-label comic">
+                  <i class="fas fa-image"></i>
+                  <span>Tranh</span>
+                </div>
+                <div class="switch-label novel">
+                  <i class="fas fa-book"></i>
+                  <span>Chữ</span>
+                </div>
+              </div>
+              <div class="slider">
+                <i class="fas fa-image"></i>
+                <span>Tranh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variation 2: Different Color -->
+        <div class="variation-item">
+          <div class="variation-label">2. Màu sắc khác (Hồng/Đỏ)</div>
+          <div class="toggle-container">
+            <div class="toggle-switch orange" onclick="toggleMode(this)">
+              <div class="switch-labels">
+                <div class="switch-label comic">
+                  <i class="fas fa-image"></i>
+                  <span>Truyện Tranh</span>
+                </div>
+                <div class="switch-label novel">
+                  <i class="fas fa-book"></i>
+                  <span>Truyện Chữ</span>
+                </div>
+              </div>
+              <div class="slider">
+                <i class="fas fa-image"></i>
+                <span>Truyện Tranh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variation 3: With Border -->
+        <div class="variation-item">
+          <div class="variation-label">3. Có viền (Border)</div>
+          <div class="toggle-container">
+            <div class="toggle-switch bordered" onclick="toggleMode(this)">
+              <div class="switch-labels">
+                <div class="switch-label comic">
+                  <i class="fas fa-image"></i>
+                  <span>Truyện Tranh</span>
+                </div>
+                <div class="switch-label novel">
+                  <i class="fas fa-book"></i>
+                  <span>Truyện Chữ</span>
+                </div>
+              </div>
+              <div class="slider">
+                <i class="fas fa-image"></i>
+                <span>Truyện Tranh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Integration Code -->
+      <div class="code-section">
+        <h3>📝 Mã HTML Tích Hợp</h3>
+        <pre>
+&lt;div class="toggle-switch" onclick="toggleContentType()"&gt;
+    &lt;div class="switch-labels"&gt;
+        &lt;div class="switch-label comic"&gt;
+            &lt;i class="fas fa-image"&gt;&lt;/i&gt;
+            &lt;span&gt;Truyện Tranh&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div class="switch-label novel"&gt;
+            &lt;i class="fas fa-book"&gt;&lt;/i&gt;
+            &lt;span&gt;Truyện Chữ&lt;/span&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="slider"&gt;
+        &lt;i class="fas fa-image"&gt;&lt;/i&gt;
+        &lt;span&gt;Truyện Tranh&lt;/span&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</pre
+        >
+      </div>
+
+      <div class="code-section" style="margin-top: 20px">
+        <h3>⚙️ JavaScript</h3>
+        <pre>
+function toggleContentType() {
+    const toggle = document.querySelector('.toggle-switch');
+    const slider = toggle.querySelector('.slider');
+    
+    toggle.classList.toggle('novel-mode');
+    
+    if (toggle.classList.contains('novel-mode')) {
+        // Chuyển sang Truyện Chữ
+        slider.innerHTML = '&lt;i class="fas fa-book"&gt;&lt;/i&gt;&lt;span&gt;Truyện Chữ&lt;/span&gt;';
+        // Redirect hoặc filter data
+        window.location.href = '/novels-home';
+    } else {
+        // Chuyển sang Truyện Tranh
+        slider.innerHTML = '&lt;i class="fas fa-image"&gt;&lt;/i&gt;&lt;span&gt;Truyện Tranh&lt;/span&gt;';
+        // Redirect hoặc filter data
+        window.location.href = '/comics-home';
+    }
+}</pre
+        >
+      </div>
+    </div>
+
+    <script>
+      function toggleMode(element) {
+        const slider = element.querySelector(".slider");
+        element.classList.toggle("novel-mode");
+
+        if (element.classList.contains("novel-mode")) {
+          // Switched to Novel mode
+          slider.innerHTML =
+            '<i class="fas fa-book"></i><span>Truyện Chữ</span>';
+
+          // Update main info display if this is the main toggle
+          if (element.id === "mainToggle") {
+            document.getElementById("infoDisplay").innerHTML = `
+                        <h3>Chế độ hiện tại</h3>
+                        <p class="mode-badge">📖 Truyện Chữ</p>
+                        <p style="margin-top: 15px; font-size: 14px;">
+                            Đang hiển thị danh sách truyện chữ (novels)
+                        </p>
+                    `;
+          }
+        } else {
+          // Switched to Comic mode
+          slider.innerHTML =
+            '<i class="fas fa-image"></i><span>Truyện Tranh</span>';
+
+          // Update main info display if this is the main toggle
+          if (element.id === "mainToggle") {
+            document.getElementById("infoDisplay").innerHTML = `
+                        <h3>Chế độ hiện tại</h3>
+                        <p class="mode-badge">📚 Truyện Tranh</p>
+                        <p style="margin-top: 15px; font-size: 14px;">
+                            Đang hiển thị danh sách truyện tranh (comics)
+                        </p>
+                    `;
+          }
+        }
+
+        // For compact versions, adjust text
+        if (element.classList.contains("compact")) {
+          if (element.classList.contains("novel-mode")) {
+            slider.innerHTML = '<i class="fas fa-book"></i><span>Chữ</span>';
+          } else {
+            slider.innerHTML = '<i class="fas fa-image"></i><span>Tranh</span>';
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

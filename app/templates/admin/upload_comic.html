@@ -1,0 +1,148 @@
+{% extends "base.html" %} {% block title %}Đăng Truyện{% endblock %} {% block
+content %}
+<div class="container">
+  <h1 class="my-4">Thêm Truyện Mới</h1>
+  <form method="POST" action="{{ url_for('admin.upload_comic') }}">
+    <div class="mb-3">
+      <label for="title" class="form-label">Tiêu Đề</label>
+      <input
+        type="text"
+        class="form-control"
+        id="title"
+        name="title"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="author" class="form-label">Tác Giả</label>
+      <input type="text" class="form-control" id="author" name="author" />
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Mô Tả</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="cover_image" class="form-label">Link Ảnh Bìa</label>
+      <input
+        type="text"
+        class="form-control"
+        id="cover_image"
+        name="cover_image"
+      />
+    </div>
+    <div class="mb-3">
+      <label for="genre" class="form-label">Thể Loại</label>
+      <input type="text" class="form-control" id="genre" name="genre" />
+    </div>
+    <div class="mb-3">
+      <label for="content_type" class="form-label">Loại Nội Dung</label>
+      <select class="form-select" id="content_type" name="content_type">
+        <option value="comic">Truyện Tranh</option>
+        <option value="novel">Truyện Chữ</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="status" class="form-label">Trạng Thái</label>
+      <select class="form-select" id="status" name="status">
+        <option value="ongoing">Đang Ra</option>
+        <option value="completed">Hoàn Thành</option>
+        <option value="hiatus">Tạm Dừng</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="tags" class="form-label">Thẻ (Độ tuổi)</label>
+      <input type="text" class="form-control" id="tags" name="tags" />
+    </div>
+    <!-- Duplicate Check Alert -->
+    <div id="duplicate-alert" class="alert alert-warning d-none" role="alert">
+      <h6>
+        <i class="fas fa-exclamation-triangle"></i> Phát hiện truyện tương tự!
+      </h6>
+      <div id="duplicate-list"></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="submit-btn">
+      Tạo Truyện
+    </button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const titleInput = document.getElementById("title");
+    const authorInput = document.getElementById("author");
+    const duplicateAlert = document.getElementById("duplicate-alert");
+    const duplicateList = document.getElementById("duplicate-list");
+    const submitBtn = document.getElementById("submit-btn");
+
+    let checkTimeout;
+
+    function checkDuplicates() {
+      const title = titleInput.value.trim();
+      const author = authorInput.value.trim();
+
+      if (title.length < 3) {
+        duplicateAlert.classList.add("d-none");
+        return;
+      }
+
+      // Debounce API call
+      clearTimeout(checkTimeout);
+      checkTimeout = setTimeout(() => {
+        fetch("/admin/check-duplicate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ title, author }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.duplicates && data.duplicates.length > 0) {
+              duplicateAlert.classList.remove("d-none");
+              duplicateList.innerHTML = data.duplicates
+                .map(
+                  (comic) =>
+                    `<div class="mb-1">
+                            <strong>"${comic.title}"</strong> by ${
+                      comic.author || "Không rõ"
+                    }
+                            <a href="/comic/${
+                              comic.id
+                            }" target="_blank" class="btn btn-sm btn-outline-primary ms-2">Xem</a>
+                        </div>`
+                )
+                .join("");
+
+              if (data.exact_duplicate) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Truyện đã tồn tại";
+                duplicateAlert.classList.remove("alert-warning");
+                duplicateAlert.classList.add("alert-danger");
+              } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Tạo Truyện";
+                duplicateAlert.classList.remove("alert-danger");
+                duplicateAlert.classList.add("alert-warning");
+              }
+            } else {
+              duplicateAlert.classList.add("d-none");
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Tạo Truyện";
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }, 500);
+    }
+
+    titleInput.addEventListener("input", checkDuplicates);
+    authorInput.addEventListener("input", checkDuplicates);
+  });
+</script>
+
+{% endblock %}

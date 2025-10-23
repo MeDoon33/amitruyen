@@ -1,0 +1,960 @@
+{% extends "base.html" %} {% block title %}Con đường tu luyện{% endblock %} {%
+block extra_css %}
+<style>
+  .progression-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .progress-bar-container {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    height: 20px;
+    margin-top: 10px;
+  }
+
+  .progress-bar-fill {
+    background: linear-gradient(90deg, #ff6b6b, #ffd93d);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+  }
+
+  .badge-item {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+  }
+
+  .badge-item:hover {
+    transform: translateY(-2px);
+  }
+
+  .earned-badge {
+    border: 2px solid #28a745;
+  }
+
+  .not-earned-badge {
+    opacity: 0.6;
+    border: 2px solid #dee2e6;
+  }
+
+  .rank-selector {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .rank-option {
+    cursor: pointer;
+    padding: 15px;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    margin: 10px;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .rank-option:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+  }
+
+  .rank-option.selected {
+    border-color: #28a745;
+    background-color: #e8f5e9;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+
+  .leaderboard-entry {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .leaderboard-entry .rank-logo-small {
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    border-radius: 3px;
+  }
+
+  .rank-position {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: 15px;
+    min-width: 40px;
+  }
+
+  .rank-position.gold {
+    color: #ffd700;
+  }
+  .rank-position.silver {
+    color: #c0c0c0;
+  }
+  .rank-position.bronze {
+    color: #cd7f32;
+  }
+
+  /* Leaderboard sub-tabs styling */
+  .nav-pills .nav-link {
+    border-radius: 25px;
+    margin-right: 10px;
+    padding: 8px 20px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+
+  .nav-pills .nav-link:not(.active) {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+  }
+
+  .nav-pills .nav-link:not(.active):hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+  }
+
+  .nav-pills .nav-link.active {
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    color: white;
+  }
+
+  /* Leaderboard styling inspired by the image */
+  .leaderboard-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .leaderboard-title {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .leaderboard-tabs {
+    margin-bottom: 20px;
+  }
+
+  .tab-nav {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding-bottom: 10px;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: #8a8a8a;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .tab-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .tab-btn.active {
+    color: #00bfff;
+    background: rgba(0, 191, 255, 0.2);
+  }
+
+  .content-type-toggle {
+    margin-bottom: 15px;
+  }
+
+  .toggle-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .toggle-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .toggle-btn.active {
+    background: #00bfff;
+    border-color: #00bfff;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3);
+  }
+
+  .leaderboard-list {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .leaderboard-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+  }
+
+  .leaderboard-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+  }
+
+  .leaderboard-item.rank-1 {
+    border-left-color: #ffd700;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 215, 0, 0.2),
+      rgba(255, 255, 255, 0.05)
+    );
+  }
+
+  .leaderboard-item.rank-2 {
+    border-left-color: #c0c0c0;
+    background: linear-gradient(
+      90deg,
+      rgba(192, 192, 192, 0.2),
+      rgba(255, 255, 255, 0.05)
+    );
+  }
+
+  .leaderboard-item.rank-3 {
+    border-left-color: #cd7f32;
+    background: linear-gradient(
+      90deg,
+      rgba(205, 127, 50, 0.2),
+      rgba(255, 255, 255, 0.05)
+    );
+  }
+
+  .rank-number {
+    font-size: 1.2rem;
+    font-weight: bold;
+    min-width: 30px;
+    margin-right: 15px;
+    text-align: center;
+  }
+
+  .rank-number.rank-1 {
+    color: #ffd700;
+  }
+  .rank-number.rank-2 {
+    color: #c0c0c0;
+  }
+  .rank-number.rank-3 {
+    color: #cd7f32;
+  }
+
+  .comic-thumbnail {
+    width: 50px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-right: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .comic-info {
+    flex: 1;
+  }
+
+  .comic-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+
+  .comic-subtitle {
+    font-size: 0.8rem;
+    color: #8a8a8a;
+    margin-bottom: 2px;
+  }
+
+  .comic-stats {
+    display: flex;
+    gap: 15px;
+    margin-top: 5px;
+  }
+
+  .stat-item {
+    font-size: 0.75rem;
+    color: #aaaaaa;
+  }
+
+  .stat-item i {
+    margin-right: 4px;
+    color: #00bfff;
+  }
+  .feature-disabled-box {
+    background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+    color: #fff;
+    padding: 50px 30px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  .feature-disabled-box:before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    left: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.15),
+      transparent 70%
+    );
+    animation: pulse 4s linear infinite;
+    opacity: 0.5;
+  }
+  @keyframes pulse {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .feature-disabled-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .feature-disabled-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+  .feature-disabled-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 680px;
+    margin: 0 auto 25px;
+  }
+  .feature-disabled-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+  }
+  .feature-disabled-hint {
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+  .feature-reenable-btn {
+    border: 2px solid #ff6b6b;
+    background: transparent;
+    color: #fff;
+    padding: 10px 26px;
+    border-radius: 30px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+  .feature-reenable-btn:hover {
+    background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+    color: #212529;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+    transform: translateY(-2px);
+  }
+</style>
+{% endblock %} {% block content %} {% if progression_disabled %}
+<div class="container py-5">
+  <div class="feature-disabled-box">
+    <div class="feature-disabled-tag">ĐANG PHÁT TRIỂN</div>
+    <div class="feature-disabled-icon"><i class="fas fa-tools"></i></div>
+    <h1 class="feature-disabled-title">Chức năng đang phát triển</h1>
+    <p class="feature-disabled-text">
+      Hệ thống thăng cấp, danh hiệu và huy hiệu người dùng hiện đang được phát
+      triển và sẽ ra mắt trong thời gian tới. Cùng đón chờ nhé!
+    </p>
+    <button type="button" class="feature-reenable-btn" disabled>
+      Đang xây dựng...
+    </button>
+    <div class="mt-4 feature-disabled-hint"></div>
+  </div>
+</div>
+{% else %}
+<div class="container mt-4">
+  <h1 class="text-center mb-4">
+    <i class="fas fa-trophy"></i> Con đường tu luyện
+  </h1>
+
+  <!-- Main Progression Card -->
+  <div class="progression-card">
+    <div class="row">
+      <div class="col-md-6">
+        <h3>{{ current_user.get_display_name_with_styled_title() | safe }}</h3>
+        <p class="mb-2">
+          <strong>Cấp {{ current_user.level }}</strong>
+        </p>
+        <p class="mb-2">
+          <strong>{{ current_user.points }}</strong> điểm kinh nghiệm
+        </p>
+        <p class="mb-2">
+          <strong>{{ current_user.get_rank_type_display() }}</strong> - Trường
+          phái tu luyện
+        </p>
+      </div>
+      <div class="col-md-6">
+        <h5>Tiến độ lên cấp</h5>
+        <div class="progress-bar-container">
+          <div
+            class="progress-bar-fill"
+            style="--progress-width: {{ current_user.get_progress_to_next_level() }}%; width: var(--progress-width);"
+          ></div>
+        </div>
+        <small
+          >{{ "%.1f"|format(current_user.get_progress_to_next_level()) }}% đến
+          cấp {{ current_user.level + 1 }}</small
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Rank Type -->
+  <div class="rank-selector">
+    <h4><i class="fas fa-magic"></i> Chọn Trường Phái Tu Luyện</h4>
+    <p class="text-muted">
+      Bạn có thể thay đổi trường phái tu luyện bất cứ lúc nào để có các danh
+      hiệu khác nhau.
+    </p>
+    <div class="row">
+      <div class="col-md-4">
+        <div
+          class="rank-option {% if current_user.rank_type == 'tu_tien' %}selected{% endif %}"
+          onclick="changeRankType('tu_tien')"
+        >
+          <h5><i class="fas fa-yin-yang"></i> Tu Tiên</h5>
+          <p class="mb-0">Con đường tu luyện truyền thống</p>
+          <small class="text-muted">Luyện Khí → Trúc Cơ → Kim Đan...</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div
+          class="rank-option {% if current_user.rank_type == 'ma_vuong' %}selected{% endif %}"
+          onclick="changeRankType('ma_vuong')"
+        >
+          <h5><i class="fas fa-skull"></i> Ma Vương</h5>
+          <p class="mb-0">Con đường của sức mạnh bóng tối</p>
+          <small class="text-muted">Ma Đồ → Ma Binh → Ma Tướng...</small>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div
+          class="rank-option {% if current_user.rank_type == 'vuong_gia' %}selected{% endif %}"
+          onclick="changeRankType('vuong_gia')"
+        >
+          <h5>
+            <img
+              src="https://i.pinimg.com/736x/67/9e/dd/679edd924e24b43cfe4caa2e2f53fecc.jpg"
+              alt="Vương Giả"
+              style="width: 20px; height: 20px; margin-right: 8px"
+            />
+            Vương Giả
+          </h5>
+          <p class="mb-0">Con đường của quyền lực và danh vọng</p>
+          <small class="text-muted"
+            >Thanh Đồng → Bạch Ngân → Hoàng Kim...</small
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="total-reads">-</div>
+      <p class="mb-0">Chương đã đọc</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="total-comments">-</div>
+      <p class="mb-0">Bình luận</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="total-ratings">-</div>
+      <p class="mb-0">Đánh giá</p>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="badge-count">-</div>
+      <p class="mb-0">Huy hiệu</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs" id="progressionTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="badges-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#badges"
+        type="button"
+        role="tab"
+      >
+        <i class="fas fa-medal"></i> Huy Hiệu
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="activities-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#activities"
+        type="button"
+        role="tab"
+      >
+        <i class="fas fa-history"></i> Hoạt Động
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="leaderboard-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#leaderboard"
+        type="button"
+        role="tab"
+      >
+        <i class="fas fa-trophy"></i> Bảng Xếp Hạng
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="progressionTabsContent">
+    <!-- Badges Tab -->
+    <div class="tab-pane fade" id="badges" role="tabpanel">
+      <div class="mt-4">
+        <h4>Huy Hiệu & Thành Tựu</h4>
+        <div id="badges-container" class="row">
+          <div class="col-12 text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Đang tải...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activities Tab -->
+    <div class="tab-pane fade" id="activities" role="tabpanel">
+      <div class="mt-4">
+        <h4>Lịch Sử Hoạt Động</h4>
+        <div id="activities-container">
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Đang tải...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Tab -->
+    <div class="tab-pane fade show active" id="leaderboard" role="tabpanel">
+      <div class="mt-4">
+        <div class="leaderboard-container">
+          <div class="leaderboard-header">
+            <h4 class="leaderboard-title">Bảng Xếp Hạng</h4>
+          </div>
+
+          <!-- Time Period Tabs -->
+          <div class="leaderboard-tabs">
+            <div class="tab-nav">
+              <button
+                class="tab-btn active"
+                id="tab-month"
+                onclick="switchTimePeriod('month')"
+              >
+                Top Tháng
+              </button>
+              <button
+                class="tab-btn"
+                id="tab-week"
+                onclick="switchTimePeriod('week')"
+              >
+                Top Tuần
+              </button>
+              <button
+                class="tab-btn"
+                id="tab-day"
+                onclick="switchTimePeriod('day')"
+              >
+                Top Ngày
+              </button>
+            </div>
+          </div>
+
+          <!-- Content Type Toggle -->
+          <div class="content-type-toggle mb-3">
+            <div class="toggle-buttons">
+              <button
+                class="toggle-btn active"
+                id="toggle-comics"
+                onclick="switchContentType('comics')"
+              >
+                <i class="fas fa-images"></i> Truyện Tranh
+              </button>
+              <button
+                class="toggle-btn"
+                id="toggle-novels"
+                onclick="switchContentType('novels')"
+              >
+                <i class="fas fa-book"></i> Truyện Chữ
+              </button>
+            </div>
+          </div>
+
+          <!-- Leaderboard List -->
+          <div class="leaderboard-list" id="leaderboard-content">
+            <div class="text-center p-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Load user stats
+  async function loadUserStats() {
+    try {
+      const response = await fetch("/progression/api/user/stats");
+      const data = await response.json();
+
+      if (data.success) {
+        document.getElementById("total-reads").textContent =
+          data.stats.total_reads;
+        document.getElementById("total-comments").textContent =
+          data.stats.total_comments;
+        document.getElementById("total-ratings").textContent =
+          data.stats.total_ratings;
+        document.getElementById("badge-count").textContent =
+          data.stats.badge_count;
+      }
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    }
+  }
+
+  // Load badges
+  async function loadBadges() {
+    try {
+      const response = await fetch("/progression/api/badges/available");
+      const data = await response.json();
+
+      if (data.success) {
+        const container = document.getElementById("badges-container");
+        container.innerHTML = "";
+
+        data.badges.forEach((badge) => {
+          const badgeClass = badge.is_earned
+            ? "earned-badge"
+            : "not-earned-badge";
+          const badgeHtml = `
+                    <div class="col-md-4">
+                        <div class="badge-item ${badgeClass}">
+                            <div class="text-center">
+                                <div style="font-size: 2rem;">${
+                                  badge.icon
+                                }</div>
+                                <h6 class="mt-2">${badge.name}</h6>
+                                <p class="text-muted small mb-0">${
+                                  badge.description
+                                }</p>
+                                ${
+                                  badge.is_earned
+                                    ? '<span class="badge bg-success mt-2">Đã đạt được</span>'
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+          container.innerHTML += badgeHtml;
+        });
+      }
+    } catch (error) {
+      console.error("Error loading badges:", error);
+    }
+  }
+
+  // Load activities
+  async function loadActivities() {
+    try {
+      const response = await fetch("/progression/api/user/activities");
+      const data = await response.json();
+
+      if (data.success) {
+        const container = document.getElementById("activities-container");
+        container.innerHTML = "";
+
+        if (data.activities.length === 0) {
+          container.innerHTML =
+            '<p class="text-center text-muted">Chưa có hoạt động nào.</p>';
+          return;
+        }
+
+        data.activities.forEach((activity) => {
+          const activityHtml = `
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>${getActivityName(
+                                  activity.activity_type
+                                )}</span>
+                                <span class="badge bg-primary">+${
+                                  activity.points_earned
+                                } điểm</span>
+                                <small class="text-muted">${new Date(
+                                  activity.created_at
+                                ).toLocaleDateString("vi-VN")}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+          container.innerHTML += activityHtml;
+        });
+      }
+    } catch (error) {
+      console.error("Error loading activities:", error);
+    }
+  }
+
+  // Global variables for leaderboard state
+  let currentTimePeriod = "month";
+  let currentContentType = "comics";
+
+  // Load leaderboard
+  async function loadLeaderboard() {
+    loadNewLeaderboard(currentTimePeriod, currentContentType);
+  }
+
+  // Switch time period (Top Tháng, Top Tuần, Top Ngày)
+  function switchTimePeriod(period) {
+    currentTimePeriod = period;
+
+    // Update tab buttons
+    document
+      .querySelectorAll(".tab-btn")
+      .forEach((btn) => btn.classList.remove("active"));
+    document.getElementById(`tab-${period}`).classList.add("active");
+
+    // Load new data
+    loadNewLeaderboard(currentTimePeriod, currentContentType);
+  }
+
+  // Switch content type (Truyện Tranh vs Truyện Chữ)
+  function switchContentType(type) {
+    currentContentType = type;
+
+    // Update toggle buttons
+    document
+      .querySelectorAll(".toggle-btn")
+      .forEach((btn) => btn.classList.remove("active"));
+    document.getElementById(`toggle-${type}`).classList.add("active");
+
+    // Load new data
+    loadNewLeaderboard(currentTimePeriod, currentContentType);
+  }
+
+  // Load new leaderboard with beautiful design
+  async function loadNewLeaderboard(period, contentType) {
+    try {
+      const container = document.getElementById("leaderboard-content");
+      container.innerHTML = `
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+          </div>
+        </div>
+      `;
+
+      let url = `/progression/api/leaderboard?period=${period}&content_type=${contentType}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success && data.leaderboard.length > 0) {
+        let html = "";
+
+        data.leaderboard.forEach((user, index) => {
+          const rank = index + 1;
+          const rankClass = rank <= 3 ? `rank-${rank}` : "";
+
+          // Generate mock thumbnail for now (can be replaced with actual comic covers)
+          const thumbnailUrl =
+            user.avatar_url ||
+            `https://via.placeholder.com/50x70/333/fff?text=${rank}`;
+
+          html += `
+            <div class="leaderboard-item ${rankClass}">
+              <div class="rank-number rank-${rank}">${rank}.</div>
+              <img src="${thumbnailUrl}" alt="Thumbnail" class="comic-thumbnail" onerror="this.src='https://via.placeholder.com/50x70/333/fff?text=${rank}'">
+              <div class="comic-info">
+                <div class="comic-title">${user.display_name}</div>
+                <div class="comic-subtitle">${user.rank_type_display}</div>
+                <div class="comic-stats">
+                  <div class="stat-item">
+                    <i class="fas fa-star"></i> Cấp ${user.level}
+                  </div>
+                  <div class="stat-item">
+                    <i class="fas fa-trophy"></i> ${user.points} điểm
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = `
+          <div class="text-center p-4">
+            <div class="text-muted">
+              <i class="fas fa-info-circle fa-2x mb-3"></i>
+              <p>Chưa có dữ liệu xếp hạng cho ${
+                contentType === "comics" ? "truyện tranh" : "tiểu thuyết"
+              }</p>
+            </div>
+          </div>
+        `;
+      }
+    } catch (error) {
+      console.error("Error loading leaderboard:", error);
+      document.getElementById("leaderboard-content").innerHTML = `
+        <div class="text-center p-4 text-danger">
+          <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+          <p>Lỗi khi tải bảng xếp hạng</p>
+        </div>
+      `;
+    }
+  }
+
+  // Legacy function for compatibility
+  async function loadLeaderboardByType(contentType) {
+    currentContentType = contentType;
+    loadNewLeaderboard(currentTimePeriod, contentType);
+  }
+
+  // Change rank type
+  async function changeRankType(rankType) {
+    try {
+      const response = await fetch("/progression/api/user/change-rank-type", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ rank_type: rankType }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        location.reload(); // Reload to show new rank title
+      } else {
+        alert("Lỗi khi thay đổi trường phái: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error changing rank type:", error);
+      alert("Lỗi khi thay đổi trường phái");
+    }
+  }
+
+  // Helper function
+  function getActivityName(type) {
+    const names = {
+      read_chapter: "Đọc chương",
+      comment: "Bình luận",
+      rating: "Đánh giá truyện",
+      daily_login: "Đăng nhập hàng ngày",
+    };
+    return names[type] || type;
+  }
+
+  // Tab change handlers
+  document
+    .getElementById("badges-tab")
+    .addEventListener("shown.bs.tab", loadBadges);
+  document
+    .getElementById("activities-tab")
+    .addEventListener("shown.bs.tab", loadActivities);
+  document
+    .getElementById("leaderboard-tab")
+    .addEventListener("shown.bs.tab", loadLeaderboard);
+
+  // Load initial data
+  document.addEventListener("DOMContentLoaded", function () {
+    loadUserStats();
+    loadLeaderboard(); // Load leaderboard by default since it's the active tab
+  });
+</script>
+{% endif %} {% endblock %}

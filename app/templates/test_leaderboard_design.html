@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Leaderboard Design</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .leaderboard-container {
+        background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        margin: 20px 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      .leaderboard-title {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #00bfff;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .tab-nav {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .tab-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(0, 191, 255, 0.3);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 12px 25px;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+      }
+
+      .tab-btn:hover {
+        background: rgba(0, 191, 255, 0.2);
+        border-color: #00bfff;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .tab-btn.active {
+        background: linear-gradient(45deg, #00bfff, #0080ff);
+        border-color: #00bfff;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0, 191, 255, 0.4);
+      }
+
+      .toggle-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 25px;
+      }
+
+      .toggle-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+      }
+
+      .toggle-btn.active {
+        background: #00bfff;
+        color: white;
+        border-color: #00bfff;
+      }
+
+      .leaderboard-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+      }
+
+      .leaderboard-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+      }
+
+      .rank-1 {
+        border-color: #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+
+      .rank-2 {
+        border-color: #c0c0c0;
+        box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+      }
+
+      .rank-3 {
+        border-color: #cd7f32;
+        box-shadow: 0 0 15px rgba(205, 127, 50, 0.3);
+      }
+
+      .rank-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        min-width: 40px;
+        text-align: center;
+      }
+
+      .rank-number.rank-1 {
+        color: #ffd700;
+      }
+      .rank-number.rank-2 {
+        color: #c0c0c0;
+      }
+      .rank-number.rank-3 {
+        color: #cd7f32;
+      }
+
+      .comic-thumbnail {
+        width: 50px;
+        height: 70px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .comic-info {
+        flex: 1;
+      }
+
+      .comic-title {
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+      }
+
+      .comic-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+      }
+
+      .comic-stats {
+        display: flex;
+        gap: 15px;
+      }
+
+      .stat-item {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.85rem;
+      }
+
+      .stat-item i {
+        color: #00bfff;
+        margin-right: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="leaderboard-container">
+            <div class="leaderboard-header">
+              <h4 class="leaderboard-title">
+                <i class="fas fa-trophy"></i> Bảng Xếp Hạng
+              </h4>
+            </div>
+
+            <!-- Time Period Tabs -->
+            <div class="tab-nav">
+              <button class="tab-btn active" onclick="switchTab('month', this)">
+                Top Tháng
+              </button>
+              <button class="tab-btn" onclick="switchTab('week', this)">
+                Top Tuần
+              </button>
+              <button class="tab-btn" onclick="switchTab('day', this)">
+                Top Ngày
+              </button>
+            </div>
+
+            <!-- Content Type Toggle -->
+            <div class="toggle-buttons">
+              <button
+                class="toggle-btn active"
+                onclick="switchContent('comics', this)"
+              >
+                <i class="fas fa-images"></i> Truyện Tranh
+              </button>
+              <button
+                class="toggle-btn"
+                onclick="switchContent('novels', this)"
+              >
+                <i class="fas fa-book"></i> Truyện Chữ
+              </button>
+            </div>
+
+            <!-- Sample Leaderboard -->
+            <div class="leaderboard-list">
+              <div class="leaderboard-item rank-1">
+                <div class="rank-number rank-1">1.</div>
+                <img
+                  src="https://via.placeholder.com/50x70/FFD700/000?text=🥇"
+                  alt="Thumbnail"
+                  class="comic-thumbnail"
+                />
+                <div class="comic-info">
+                  <div class="comic-title">Dung Nhu Han Quang Gap Nu Than</div>
+                  <div class="comic-subtitle">Vương Giả</div>
+                  <div class="comic-stats">
+                    <div class="stat-item">
+                      <i class="fas fa-star"></i> Cấp 16
+                    </div>
+                    <div class="stat-item">
+                      <i class="fas fa-trophy"></i> 7080 điểm
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="leaderboard-item rank-2">
+                <div class="rank-number rank-2">2.</div>
+                <img
+                  src="https://via.placeholder.com/50x70/C0C0C0/000?text=🥈"
+                  alt="Thumbnail"
+                  class="comic-thumbnail"
+                />
+                <div class="comic-info">
+                  <div class="comic-title">Om Khan Tieu Ma Giap Cua Toi</div>
+                  <div class="comic-subtitle">Bạch Ngân</div>
+                  <div class="comic-stats">
+                    <div class="stat-item">
+                      <i class="fas fa-star"></i> Cấp 2
+                    </div>
+                    <div class="stat-item">
+                      <i class="fas fa-trophy"></i> 170 điểm
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="leaderboard-item rank-3">
+                <div class="rank-number rank-3">3.</div>
+                <img
+                  src="https://via.placeholder.com/50x70/CD7F32/000?text=🥉"
+                  alt="Thumbnail"
+                  class="comic-thumbnail"
+                />
+                <div class="comic-info">
+                  <div class="comic-title">Than Phan That Cua Vo Yeu Sang</div>
+                  <div class="comic-subtitle">Luyện Khí</div>
+                  <div class="comic-stats">
+                    <div class="stat-item">
+                      <i class="fas fa-star"></i> Cấp 1
+                    </div>
+                    <div class="stat-item">
+                      <i class="fas fa-trophy"></i> 40 điểm
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="leaderboard-item">
+                <div class="rank-number">4.</div>
+                <img
+                  src="https://via.placeholder.com/50x70/666/fff?text=4"
+                  alt="Thumbnail"
+                  class="comic-thumbnail"
+                />
+                <div class="comic-info">
+                  <div class="comic-title">Mot Ngay No, Toi Bong Tro Thanh</div>
+                  <div class="comic-subtitle">Luyện Khí</div>
+                  <div class="comic-stats">
+                    <div class="stat-item">
+                      <i class="fas fa-star"></i> Cấp 1
+                    </div>
+                    <div class="stat-item">
+                      <i class="fas fa-trophy"></i> 30 điểm
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mt-3">
+            <a href="/progression/stats" class="btn btn-primary">
+              <i class="fas fa-arrow-right"></i> Xem Bảng Xếp Hạng Thực
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function switchTab(period, button) {
+        // Remove active from all tabs
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        // Add active to clicked tab
+        button.classList.add("active");
+
+        // Add visual feedback
+        document.querySelector(".leaderboard-list").style.opacity = "0.7";
+        setTimeout(() => {
+          document.querySelector(".leaderboard-list").style.opacity = "1";
+        }, 200);
+
+        console.log("Switched to period:", period);
+      }
+
+      function switchContent(type, button) {
+        // Remove active from all toggles
+        document
+          .querySelectorAll(".toggle-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        // Add active to clicked toggle
+        button.classList.add("active");
+
+        // Add visual feedback
+        document.querySelector(".leaderboard-list").style.opacity = "0.7";
+        setTimeout(() => {
+          document.querySelector(".leaderboard-list").style.opacity = "1";
+        }, 200);
+
+        console.log("Switched to content type:", type);
+      }
+    </script>
+  </body>
+</html>

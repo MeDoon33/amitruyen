@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Edit Comic{% endblock %}
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Edit Comic</h1>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ comic.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="author" class="form-label">Author</label>
+            <input type="text" class="form-control" id="author" name="author" value="{{ comic.author }}">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3">{{ comic.description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="cover_image" class="form-label">Cover Image URL</label>
+            <input type="text" class="form-control" id="cover_image" name="cover_image" value="{{ comic.cover_image }}">
+        </div>
+        <div class="mb-3">
+            <label for="genre" class="form-label">Genre</label>
+            <input type="text" class="form-control" id="genre" name="genre" value="{{ comic.genre }}">
+        </div>
+        <div class="mb-3">
+            <label for="content_type" class="form-label">Loại Nội Dung</label>
+            <select class="form-select" id="content_type" name="content_type">
+                <option value="comic" {% if comic.content_type == 'comic' %}selected{% endif %}>Truyện Tranh</option>
+                <option value="novel" {% if comic.content_type == 'novel' %}selected{% endif %}>Truyện Chữ</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+                <option value="ongoing" {% if comic.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                <option value="completed" {% if comic.status == 'completed' %}selected{% endif %}>Completed</option>
+                <option value="hiatus" {% if comic.status == 'hiatus' %}selected{% endif %}>On Hiatus</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="tags" class="form-label">Tags (comma-separated)</label>
+            <input type="text" class="form-control" id="tags" name="tags" value="{{ comic.tags }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{{ url_for('comic.view_comic', comic_id=comic.id) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
