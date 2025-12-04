@@ -635,7 +635,7 @@ content %}
           <div class="icon-wave"></div>
           <i class="fas fa-user-plus"></i>
         </div>
-        <h2>Gia Nhập Võ Lâm</h2>
+        <h2>Gia Nhập</h2>
         <p>Bắt đầu hành trình tu luyện của bạn</p>
       </div>
 
@@ -654,7 +654,7 @@ content %}
               required
               placeholder=" "
             />
-            <label for="username">Tên võ sĩ</label>
+            <label for="username" id="usernameLabel">Tên võ sĩ</label>
             <div class="input-wave"></div>
           </div>
         </div>
@@ -669,7 +669,7 @@ content %}
               required
               placeholder=" "
             />
-            <label for="email">Địa chỉ liên lạc</label>
+            <label for="email" id="emailLabel">Địa chỉ liên lạc(Gmail)</label>
             <div class="input-wave"></div>
           </div>
         </div>
@@ -684,7 +684,7 @@ content %}
               required
               placeholder=" "
             />
-            <label for="password">Mật khẩu bí truyền</label>
+            <label for="password" id="passwordLabel">Mật khẩu bí truyền</label>
             <div class="input-wave"></div>
           </div>
         </div>
@@ -781,6 +781,35 @@ content %}
     const rankOptions = document.querySelectorAll(
       '.rank-option input[type="radio"]'
     );
+
+    // Dynamic label mapping based on rank type
+    const labelMappings = {
+      "Tu Tiên": {
+        username: "Tên tu sĩ",
+        email: "Địa chỉ tông môn(Gmail)",
+        password: "Khẩu quyết",
+      },
+      "Ma Vương": {
+        username: "Tên ma đầu",
+        email: "Địa chỉ ma cung(Gmail)",
+        password: "Ám chú",
+      },
+      "Vương Giả": {
+        username: "Tên vương giả",
+        email: "Địa chỉ hoàng cung(Gmail)",
+        password: "Mật lệnh",
+      },
+    };
+
+    function updateLabels(rankType) {
+      const labels = labelMappings[rankType];
+      if (labels) {
+        document.getElementById("usernameLabel").textContent = labels.username;
+        document.getElementById("emailLabel").textContent = labels.email;
+        document.getElementById("passwordLabel").textContent = labels.password;
+      }
+    }
+
     rankOptions.forEach((option) => {
       option.addEventListener("change", function () {
         // Remove selection from all options
@@ -799,8 +828,19 @@ content %}
         setTimeout(() => {
           content.style.transform = "";
         }, 200);
+
+        // Update labels based on selected rank
+        updateLabels(this.value);
       });
     });
+
+    // Initialize with default rank (Tu Tiên)
+    const checkedRank = document.querySelector(
+      '.rank-option input[type="radio"]:checked'
+    );
+    if (checkedRank) {
+      updateLabels(checkedRank.value);
+    }
 
     // Auto hide flash messages
     const flashMessages = document.querySelectorAll(".flash-message");

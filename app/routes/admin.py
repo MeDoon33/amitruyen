@@ -1,11 +1,12 @@
-
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
+from datetime import datetime, timedelta
 from ..models.comic import Comic
 from ..models.user import User
 from ..decorators import admin_required
 from ..services.progression import ProgressionService
 from .. import db
+from ..utils.image_upload import upload_to_imgbb, is_valid_image, get_file_size_mb
 
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -100,12 +101,42 @@ def upload_comic():
             similar_list = ', '.join([f'"{c.title}" ({c.author or "Không rõ"})' for c in similar_comics[:3]])
             flash(f'⚠️ Phát hiện truyện cùng tên: {similar_list}. Vui lòng kiểm tra kỹ để tránh trùng lặp!', 'warning')
         
+        # Xử lý upload ảnh bìa
+        final_cover_image = None
+        
+        # Kiểm tra xem có file upload không
+        if 'cover_file' in request.files:
+            cover_file = request.files['cover_file']
+            
+            if cover_file and cover_file.filename:
+                # Validate file
+                if not is_valid_image(cover_file):
+                    flash('❌ Định dạng file không hợp lệ! Chỉ chấp nhận: PNG, JPG, JPEG, GIF, WEBP', 'danger')
+                    return redirect(url_for('admin.upload_comic'))
+                
+                # Check file size (max 10MB)
+                if get_file_size_mb(cover_file) > 10:
+                    flash('❌ Kích thước file quá lớn! Tối đa 10MB', 'danger')
+                    return redirect(url_for('admin.upload_comic'))
+                
+                # Upload to ImgBB
+                flash('⏳ Đang upload ảnh lên cloud...', 'info')
+                final_cover_image = upload_to_imgbb(cover_file)
+                
+                if not final_cover_image:
+                    flash('❌ Upload ảnh thất bại! Vui lòng thử lại hoặc sử dụng URL', 'danger')
+                    return redirect(url_for('admin.upload_comic'))
+        
+        # Nếu không upload file, dùng URL từ input
+        if not final_cover_image:
+            final_cover_image = cover_image  # URL từ form input
+        
         try:
             comic = Comic(
                 title=title,
                 author=author,
                 description=description,
-                cover_image=cover_image,
+                cover_image=final_cover_image,  # URL từ ImgBB hoặc input URL
                 content_type=content_type,
                 genre=genre,
                 status=status,
@@ -118,7 +149,7 @@ def upload_comic():
             # Cộng điểm progression cho việc upload comic
             progression_result = ProgressionService.award_points(current_user.id, 'upload_comic', reference_id=comic.id)
             
-            success_msg = f'Comic "{title}" created successfully!'
+            success_msg = f'✅ Truyện "{title}" đã được tạo thành công!'
             if progression_result:
                 success_msg += f' +{progression_result["points_earned"]} điểm kinh nghiệm'
                 if progression_result['level_up']:
@@ -128,7 +159,7 @@ def upload_comic():
             return redirect(url_for('comic.view_comic', comic_id=comic.id))
         except Exception as e:
             db.session.rollback()
-            flash(f'Error creating comic: {str(e)}', 'danger')
+            flash(f'❌ Lỗi tạo truyện: {str(e)}', 'danger')
             return redirect(url_for('admin.upload_comic'))
     
     return render_template('admin/upload_comic.html')
@@ -245,11 +276,41 @@ def add_chapter(comic_id):
                 flash(f'Lỗi khi thêm chương: {str(e)}', 'danger')
                 return redirect(url_for('admin.add_chapter', comic_id=comic_id))
         else:
-            image_urls_text = request.form.get('image_urls')
-            if not image_urls_text:
-                flash('Danh sách ảnh là bắt buộc cho truyện tranh!', 'danger')
-                return redirect(url_for('admin.add_chapter', comic_id=comic_id))
-            image_urls = [u.strip() for u in image_urls_text.split('\n') if u.strip()]
+            # Check for file upload first
+            image_urls = []
+            if 'chapter_images' in request.files:
+                files = request.files.getlist('chapter_images')
+                if files and files[0].filename:  # Check if files were actually uploaded
+                    from ..utils.image_upload import upload_to_imgbb, is_valid_image, get_file_size_mb
+                    
+                    for file in files:
+                        if not is_valid_image(file):
+                            flash(f'❌ File không hợp lệ: {file.filename}', 'danger')
+                            return redirect(url_for('admin.add_chapter', comic_id=comic_id))
+                        
+                        if get_file_size_mb(file) > 10:
+                            flash(f'❌ File quá lớn (>10MB): {file.filename}', 'danger')
+                            return redirect(url_for('admin.add_chapter', comic_id=comic_id))
+                        
+                        # Upload to ImgBB
+                        img_url = upload_to_imgbb(file)
+                        if img_url:
+                            image_urls.append(img_url)
+                        else:
+                            flash(f'❌ Không thể upload: {file.filename}', 'danger')
+                            return redirect(url_for('admin.add_chapter', comic_id=comic_id))
+                    
+                    if image_urls:
+                        flash(f'✅ Đã upload {len(image_urls)} ảnh lên ImgBB!', 'success')
+            
+            # Fallback to URL input if no files uploaded
+            if not image_urls:
+                image_urls_text = request.form.get('image_urls')
+                if not image_urls_text:
+                    flash('Vui lòng chọn ảnh để upload hoặc nhập URL!', 'danger')
+                    return redirect(url_for('admin.add_chapter', comic_id=comic_id))
+                image_urls = [u.strip() for u in image_urls_text.split('\n') if u.strip()]
+            
             img_hash = hashlib.sha256('\n'.join(image_urls).encode('utf-8')).hexdigest()
             
             # Optimized: check last 50 chapters only
@@ -447,3 +508,174 @@ def scan_duplicate_chapters(comic_id):
         'duplicate_image_sets': duplicate_images,
         'total_chapters': len(chapters)
     })
+
+@admin.route('/user/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    if current_user.username != 'admin':
+        flash('Only the super admin can delete users.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    user = User.query.get_or_404(user_id)
+    if user.username == 'admin':
+        flash('Không thể xóa Super Admin.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f'Đã xóa người dùng {user.username}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Lỗi khi xóa: {str(e)}', 'danger')
+    return redirect(url_for('admin.manage_users'))
+
+
+@admin.route('/my-comics')
+@login_required
+@uploader_required
+def my_comics():
+    """Trang quản lý truyện của uploader"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 12
+    
+    # Admin có thể xem truyện của uploader cụ thể
+    uploader_id = request.args.get('uploader_id', type=int)
+    if uploader_id and current_user.is_admin():
+        target_user_id = uploader_id
+        target_user = User.query.get_or_404(uploader_id)
+    else:
+        target_user_id = current_user.id
+        target_user = current_user
+    
+    # Lấy truyện của user
+    pagination = Comic.query.filter_by(uploader_id=target_user_id)\
+        .order_by(Comic.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    comics = pagination.items
+    
+    # Thống kê
+    total_comics = Comic.query.filter_by(uploader_id=target_user_id).count()
+    total_views = db.session.query(db.func.sum(Comic.views))\
+        .filter(Comic.uploader_id == target_user_id).scalar() or 0
+    total_follows = db.session.query(db.func.sum(Comic.follow_count))\
+        .filter(Comic.uploader_id == target_user_id).scalar() or 0
+    
+    # Tính tổng số chapters
+    from ..models.comic import Chapter
+    total_chapters = db.session.query(db.func.count(Chapter.id))\
+        .join(Comic)\
+        .filter(Comic.uploader_id == target_user_id).scalar() or 0
+    
+    stats = {
+        'total_comics': total_comics,
+        'total_views': total_views,
+        'total_follows': total_follows,
+        'total_chapters': total_chapters
+    }
+    
+    return render_template('admin/my_comics.html', 
+                         comics=comics, 
+                         pagination=pagination,
+                         stats=stats,
+                         target_user=target_user,
+                         viewing_other=(uploader_id is not None and current_user.is_admin()))
+
+
+@admin.route('/uploaders')
+@login_required
+@admin_required
+def list_uploaders():
+    """Danh sách tất cả uploader và số lượng truyện của họ (Admin only)"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    # Query users có role uploader hoặc đã upload truyện
+    from sqlalchemy import func
+    
+    # Lấy users có truyện
+    uploaders_with_comics = db.session.query(
+        User,
+        func.count(Comic.id).label('comic_count'),
+        func.sum(Comic.views).label('total_views'),
+        func.sum(Comic.follow_count).label('total_follows')
+    ).outerjoin(Comic, User.id == Comic.uploader_id)\
+     .group_by(User.id)\
+     .having(func.count(Comic.id) > 0)\
+     .order_by(func.count(Comic.id).desc())\
+     .paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template('admin/uploaders.html', 
+                         uploaders=uploaders_with_comics)
+
+
+@admin.route('/users/<int:user_id>/ban', methods=['POST'])
+@login_required
+@admin_required
+def ban_user(user_id):
+    """Ban a user for a specified duration or permanently"""
+    if current_user.id == user_id:
+        flash('Bạn không thể tự cấm chính mình!', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent banning other admins
+    if user.is_admin() and current_user.username != 'admin':
+        flash('Chỉ super admin mới có thể cấm admin khác!', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    ban_duration = request.form.get('ban_duration')  # 'hours', 'days', 'weeks', 'permanent'
+    ban_value = request.form.get('ban_value', type=int)
+    ban_reason = request.form.get('ban_reason', '').strip()
+    
+    user.is_banned = True
+    user.banned_by = current_user.id
+    user.banned_at = datetime.utcnow()
+    user.ban_reason = ban_reason if ban_reason else 'Vi phạm quy định'
+    
+    if ban_duration == 'permanent':
+        user.ban_until = None
+        flash(f'Đã cấm vĩnh viễn tài khoản {user.username}!', 'success')
+    else:
+        if not ban_value or ban_value <= 0:
+            flash('Vui lòng nhập thời gian cấm hợp lệ!', 'danger')
+            return redirect(url_for('admin.manage_users'))
+        
+        if ban_duration == 'hours':
+            user.ban_until = datetime.utcnow() + timedelta(hours=ban_value)
+            duration_text = f'{ban_value} giờ'
+        elif ban_duration == 'days':
+            user.ban_until = datetime.utcnow() + timedelta(days=ban_value)
+            duration_text = f'{ban_value} ngày'
+        elif ban_duration == 'weeks':
+            user.ban_until = datetime.utcnow() + timedelta(weeks=ban_value)
+            duration_text = f'{ban_value} tuần'
+        else:
+            flash('Thời gian cấm không hợp lệ!', 'danger')
+            return redirect(url_for('admin.manage_users'))
+        
+        flash(f'Đã cấm tài khoản {user.username} trong {duration_text}!', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('admin.manage_users'))
+
+
+@admin.route('/users/<int:user_id>/unban', methods=['POST'])
+@login_required
+@admin_required
+def unban_user(user_id):
+    """Unban a user"""
+    user = User.query.get_or_404(user_id)
+    
+    if not user.is_banned:
+        flash(f'Tài khoản {user.username} không bị cấm!', 'info')
+        return redirect(url_for('admin.manage_users'))
+    
+    user.is_banned = False
+    user.ban_until = None
+    user.ban_reason = None
+    
+    db.session.commit()
+    flash(f'Đã gỡ cấm tài khoản {user.username}!', 'success')
+    return redirect(url_for('admin.manage_users'))

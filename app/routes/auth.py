@@ -47,6 +47,15 @@ def login():
         password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
+            # Check if user is banned
+            if user.is_currently_banned():
+                ban_info = user.get_ban_info()
+                if ban_info['is_permanent']:
+                    flash(f'Tài khoản của bạn đã bị cấm vĩnh viễn. Lý do: {ban_info["reason"]}', 'danger')
+                else:
+                    flash(f'Tài khoản của bạn bị cấm đến {ban_info["ban_until"].strftime("%d/%m/%Y %H:%M")}. Lý do: {ban_info["reason"]}', 'danger')
+                return redirect(url_for('auth.login'))
+            
             login_user(user)
             
             # Award daily login points

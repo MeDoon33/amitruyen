@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template, current_app, flash, redirect, url_for
 from flask_login import current_user, login_required
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models.comic import Comic, Chapter, UserReadHistory, UserRating, Comment, Follow
+from app.models.comic import Comic, Chapter, UserReadHistory, UserRating, Comment, Follow, CommentReaction
 from app.schemas.comic import ComicCreate, ChapterCreate
 from app.services.progression import ProgressionService
 from app import db
@@ -88,9 +88,9 @@ def get_comics():
     status = request.args.get('status')
     search = request.args.get('search')  # tìm theo tiêu đề hoặc tác giả
     tag = request.args.get('tag')  # tìm theo tag đơn lẻ
-    
+
     query = Comic.query
-    
+
     if genre:
         query = query.filter(Comic.genre == genre)
     if status:
@@ -100,16 +100,20 @@ def get_comics():
         query = query.filter(
             (Comic.title.ilike(search_term)) |
             (Comic.author.ilike(search_term)) |
-            (Comic.genre.ilike(search_term)) |
-            (Comic.description.ilike(search_term))
+            (Comic.genre.ilike(search_term)) 
+            
         )
     if tag:
         tag_term = f"%{tag}%"
         query = query.filter(Comic.tags.ilike(tag_term))
-        
+
     comics = query.order_by(Comic.updated_at.desc()).paginate(page=page, per_page=per_page)
-    
-    return render_template('comic/list.html', comics=comics, genre=genre, status=status, search=search, tag=tag)
+
+    # Lấy genres và statuses động
+    genres = sorted(set([g[0] for g in db.session.query(Comic.genre).distinct().all() if g[0]]))
+    statuses = sorted(set([s[0] for s in db.session.query(Comic.status).distinct().all() if s[0]]))
+
+    return render_template('comic/list.html', comics=comics, genre=genre, status=status, search=search, tag=tag, genres=genres, statuses=statuses)
 
 @comic.route('/novels', methods=['GET'])
 def get_novels():
@@ -127,7 +131,8 @@ def get_novels():
         query = query.filter(
             (Comic.title.ilike(search_term)) |
             (Comic.author.ilike(search_term)) |
-            (Comic.description.ilike(search_term))
+            (Comic.genre.ilike(search_term))  
+            
         )
     
     if status:
@@ -167,8 +172,8 @@ def search_comics_api():
             filters.append(
                 (Comic.title.ilike(general_term)) |
                 (Comic.author.ilike(general_term)) |
-                (Comic.genre.ilike(general_term)) |
-                (Comic.description.ilike(general_term))
+                (Comic.genre.ilike(general_term)) 
+                
             )
             
         if title_query:
@@ -266,7 +271,33 @@ def view_comic(comic_id):
         is_following = follow_obj is not None
     
     # Lấy comments cho comic này
-    comments = Comment.query.filter_by(comic_id=comic_id).order_by(Comment.created_at.desc()).all()
+    # Filter out hidden comments for regular users
+    # Only get top-level comments (parent_id is NULL), replies will be accessed via comment.replies
+    if current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator()):
+        # Admin/moderator can see all comments including hidden ones
+        comments = Comment.query.filter_by(comic_id=comic_id, parent_id=None).order_by(Comment.created_at.desc()).all()
+    else:
+        # Regular users only see non-hidden comments
+        comments = Comment.query.filter_by(comic_id=comic_id, parent_id=None, is_hidden=False).order_by(Comment.created_at.desc()).all()
+    
+    # Get user reactions for all comments (if authenticated)
+    user_reactions = {}
+    if current_user.is_authenticated:
+        # Get all comment IDs (including replies)
+        all_comment_ids = [c.id for c in comments]
+        for comment in comments:
+            if current_user.is_admin() or current_user.is_moderator():
+                all_comment_ids.extend([r.id for r in comment.get_all_replies()])
+            else:
+                all_comment_ids.extend([r.id for r in comment.get_replies()])
+        
+        # Query all user reactions at once
+        reactions = CommentReaction.query.filter(
+            CommentReaction.user_id == current_user.id,
+            CommentReaction.comment_id.in_(all_comment_ids)
+        ).all()
+        
+        user_reactions = {r.comment_id: r.reaction_type for r in reactions}
     
     return render_template('comic/view.html',
                            comic=comic,
@@ -276,6 +307,7 @@ def view_comic(comic_id):
                            resume_chapter=resume_chapter,
                            user_rating=user_rating,
                            comments=comments,
+                           user_reactions=user_reactions,
                            is_following=is_following)
 
 @comic.route('/<int:comic_id>/chapter/<float:chapter_number>')
@@ -326,22 +358,37 @@ def read_chapter(comic_id, chapter_number):
         Chapter.comic_id == comic_id,
         Chapter.chapter_number < chapter_number
     ).order_by(Chapter.chapter_number.desc()).first()
+
+    # First and last chapter (for jump buttons)
+    first_chapter = Chapter.query.filter_by(comic_id=comic_id).order_by(Chapter.chapter_number.asc()).first()
+    last_chapter = Chapter.query.filter_by(comic_id=comic_id).order_by(Chapter.chapter_number.desc()).first()
     
     # Parse image URLs from JSON string if it's a comic
     image_urls = json.loads(chapter.image_urls) if chapter.image_urls else []
     
     # Use different template based on content type
+    all_chapters = None  # ensure variable exists for both content types
     if comic.content_type == 'novel':
         template = 'comic/read_novel.html'
+        # Provide full chapter list for jump navigation (only for novel)
+        all_chapters = Chapter.query.with_entities(Chapter.chapter_number, Chapter.title) \
+            .filter_by(comic_id=comic_id) \
+            .order_by(Chapter.chapter_number.asc()) \
+            .all()
     else:
         template = 'comic/read.html'
     
-    return render_template(template,
-                         comic=comic,
-                         chapter=chapter,
-                         images=image_urls,
-                         next_chapter=next_chapter,
-                         prev_chapter=prev_chapter)
+    return render_template(
+        template,
+        comic=comic,
+        chapter=chapter,
+        images=image_urls,
+        next_chapter=next_chapter,
+        prev_chapter=prev_chapter,
+        first_chapter=first_chapter,
+        last_chapter=last_chapter,
+        all_chapters=all_chapters if comic.content_type == 'novel' else None
+    )
 
 # API endpoints for admin/upload functionality
 @comic.route('/', methods=['POST'])
@@ -383,6 +430,7 @@ def add_chapter(comic_id):
 def add_comment(comic_id):
     comic = Comic.query.get_or_404(comic_id)
     content = request.form.get('content')
+    parent_id = request.form.get('parent_id')  # For replies
     
     if not content or not content.strip():
         flash('Bình luận không được để trống.', 'danger')
@@ -392,23 +440,27 @@ def add_comment(comic_id):
         comment = Comment(
             user_id=current_user.id,
             comic_id=comic_id,
-            content=content.strip()
+            content=content.strip(),
+            parent_id=int(parent_id) if parent_id else None
         )
         db.session.add(comment)
         db.session.commit()
         
-        # Award points for commenting
-        progression_result = ProgressionService.award_points(
-            current_user.id, 
-            'comment', 
-            comment.id
-        )
-        
-        # Show level up message if applicable
-        if progression_result and progression_result['level_up']:
-            flash(f'Bình luận đã được đăng thành công! 🎉 Bạn đã lên cấp {progression_result["new_level"]} - {progression_result["rank_title"]}!', 'success')
+        # Award points for commenting (only for top-level comments, not replies)
+        if not parent_id:
+            progression_result = ProgressionService.award_points(
+                current_user.id, 
+                'comment', 
+                comment.id
+            )
+            
+            # Show level up message if applicable
+            if progression_result and progression_result['level_up']:
+                flash(f'Bình luận đã được đăng thành công! 🎉 Bạn đã lên cấp {progression_result["new_level"]} - {progression_result["rank_title"]}!', 'success')
+            else:
+                flash('Bình luận đã được đăng thành công!', 'success')
         else:
-            flash('Bình luận đã được đăng thành công!', 'success')
+            flash('Trả lời đã được đăng thành công!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Lỗi khi đăng bình luận: {str(e)}', 'danger')
@@ -448,3 +500,151 @@ def toggle_follow(comic_id):
         flash(f'Lỗi khi cập nhật theo dõi: {str(e)}', 'danger')
     
     return redirect(url_for('comic.view_comic', comic_id=comic_id))
+
+@comic.route('/<int:comic_id>/comment/<int:comment_id>/hide', methods=['POST'])
+@login_required
+def hide_comment(comic_id, comment_id):
+    """Hide a comment (soft delete) - admin/moderator only"""
+    if not current_user.is_admin() and not current_user.is_moderator():
+        flash('Bạn không có quyền ẩn bình luận.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.comic_id != comic_id:
+        flash('Bình luận không thuộc truyện này.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    try:
+        comment.is_hidden = True
+        db.session.commit()
+        flash('Đã ẩn bình luận.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Lỗi khi ẩn bình luận: {str(e)}', 'danger')
+    
+    return redirect(url_for('comic.view_comic', comic_id=comic_id))
+
+@comic.route('/<int:comic_id>/comment/<int:comment_id>/unhide', methods=['POST'])
+@login_required
+def unhide_comment(comic_id, comment_id):
+    """Unhide a comment - admin/moderator only"""
+    if not current_user.is_admin() and not current_user.is_moderator():
+        flash('Bạn không có quyền hiện bình luận.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.comic_id != comic_id:
+        flash('Bình luận không thuộc truyện này.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    try:
+        comment.is_hidden = False
+        db.session.commit()
+        flash('Đã hiện lại bình luận.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Lỗi khi hiện bình luận: {str(e)}', 'danger')
+    
+    return redirect(url_for('comic.view_comic', comic_id=comic_id))
+
+@comic.route('/<int:comic_id>/comment/<int:comment_id>/react', methods=['POST'])
+@login_required
+def react_comment(comic_id, comment_id):
+    """Like or dislike a comment"""
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.comic_id != comic_id:
+        return jsonify({'error': 'Bình luận không thuộc truyện này'}), 400
+    
+    reaction_type = request.form.get('reaction_type')  # 'like' or 'dislike'
+    
+    if reaction_type not in ['like', 'dislike']:
+        return jsonify({'error': 'Loại reaction không hợp lệ'}), 400
+    
+    try:
+        # Kiểm tra xem user đã react chưa
+        existing_reaction = CommentReaction.query.filter_by(
+            user_id=current_user.id,
+            comment_id=comment_id
+        ).first()
+        
+        if existing_reaction:
+            # User đã react rồi
+            if existing_reaction.reaction_type == reaction_type:
+                # Click lại cùng loại = remove reaction
+                if reaction_type == 'like':
+                    comment.likes_count = max(0, comment.likes_count - 1)
+                else:
+                    comment.dislikes_count = max(0, comment.dislikes_count - 1)
+                db.session.delete(existing_reaction)
+                action = 'removed'
+            else:
+                # Chuyển từ like sang dislike hoặc ngược lại
+                if existing_reaction.reaction_type == 'like':
+                    comment.likes_count = max(0, comment.likes_count - 1)
+                    comment.dislikes_count += 1
+                else:
+                    comment.dislikes_count = max(0, comment.dislikes_count - 1)
+                    comment.likes_count += 1
+                existing_reaction.reaction_type = reaction_type
+                action = 'changed'
+        else:
+            # User chưa react, tạo mới
+            new_reaction = CommentReaction(
+                user_id=current_user.id,
+                comment_id=comment_id,
+                reaction_type=reaction_type
+            )
+            if reaction_type == 'like':
+                comment.likes_count += 1
+            else:
+                comment.dislikes_count += 1
+            db.session.add(new_reaction)
+            action = 'added'
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'likes_count': comment.likes_count,
+            'dislikes_count': comment.dislikes_count,
+            'user_reaction': reaction_type if action != 'removed' else None
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@comic.route('/<int:comic_id>/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comic_id, comment_id):
+    """Permanently delete a comment - admin only"""
+    if not current_user.is_admin():
+        flash('Chỉ admin mới có quyền xóa vĩnh viễn bình luận.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    comment = Comment.query.get_or_404(comment_id)
+    
+    if comment.comic_id != comic_id:
+        flash('Bình luận không thuộc truyện này.', 'danger')
+        return redirect(url_for('comic.view_comic', comic_id=comic_id))
+    
+    try:
+        db.session.delete(comment)
+        db.session.commit()
+        flash('Đã xóa vĩnh viễn bình luận.', 'warning')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Lỗi khi xóa bình luận: {str(e)}', 'danger')
+    
+    return redirect(url_for('comic.view_comic', comic_id=comic_id))
+
+@comic.route('/genres-statuses', methods=['GET'])
+def get_genres_statuses():
+    genres = db.session.query(Comic.genre).distinct().all()
+    statuses = db.session.query(Comic.status).distinct().all()
+    genres = sorted(set([g[0] for g in genres if g[0]]))
+    statuses = sorted(set([s[0] for s in statuses if s[0]]))
+    return jsonify({'genres': genres, 'statuses': statuses})

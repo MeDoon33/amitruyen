@@ -29,11 +29,14 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
     app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
     app.config['DEBUG'] = True
+    
+    # ImgBB API Configuration
+    app.config['IMGBB_API_KEY'] = os.getenv('IMGBB_API_KEY')
 
     # Feature flags (tạm thời vô hiệu hóa thăng cấp, danh hiệu, huy hiệu)
-    app.config['PROGRESSION_ENABLED'] = False  # Điểm, level, leaderboard, activities
-    app.config['RANK_TITLES_ENABLED'] = False  # Danh hiệu cấp bậc
-    app.config['BADGES_ENABLED'] = False       # Huy hiệu người dùng
+    app.config['PROGRESSION_ENABLED'] = True  # Điểm, level, leaderboard, activities
+    app.config['RANK_TITLES_ENABLED'] = True  # Danh hiệu cấp bậc
+    app.config['BADGES_ENABLED'] = True       # Huy hiệu người dùng
     
     # Configure MySQL connection
     app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')

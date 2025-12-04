@@ -21,6 +21,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}Comic Reader{% endblock %}</title>
     <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/Logo/unnamed-removebg-preview.png') }}"
+      sizes="32x32"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="{{ url_for('static', filename='images/Logo/unnamed-removebg-preview.png') }}"
+    />
+    <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
@@ -37,9 +47,25 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
-        <a class="navbar-brand" href="{% if comic is defined and comic.content_type == 'novel' %}{{ url_for('main.novel_homepage') }}{% else %}{{ url_for('main.comic_homepage') }}{% endif %}"
-          >Trang Chủ</a
+        <a
+          class="navbar-brand d-flex align-items-center"
+          href="{{ url_for('main.homepage') }}"
         >
+          <img
+            src="{{ url_for('static', filename='images/Logo/unnamed-removebg-preview.png') }}"
+            alt="AmiTruyen Logo"
+            style="
+              width: 50px;
+              height: 50px;
+              border-radius: 50%;
+              margin-right: 12px;
+              object-fit: cover;
+              border: none;
+              outline: none;
+            "
+          />
+          <span>Trang Chủ</span>
+        </a>
 
         <button
           class="navbar-toggler"
@@ -91,17 +117,67 @@
             </li>
             {% if current_user.is_authenticated and (current_user.is_admin() or
             current_user.is_uploader()) %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('admin.upload_comic') }}"
-                >Đăng Truyện</a
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="uploaderDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
+                <i class="fas fa-upload"></i> Quản Lý Truyện
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="uploaderDropdown">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('admin.my_comics') }}"
+                  >
+                    <i class="fas fa-book-open me-2"></i>Truyện Của Tôi
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('admin.upload_comic') }}"
+                  >
+                    <i class="fas fa-plus me-2"></i>Đăng Truyện Mới
+                  </a>
+                </li>
+              </ul>
             </li>
             {% endif %} {% if current_user.is_authenticated and
             current_user.is_admin() %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('admin.manage_users') }}"
-                >Quản lý Thành viên</a
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="adminDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
+                <i class="fas fa-cog"></i> Quản Trị
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('admin.manage_users') }}"
+                  >
+                    <i class="fas fa-users me-2"></i>Quản Lý Thành Viên
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('admin.list_uploaders') }}"
+                  >
+                    <i class="fas fa-upload me-2"></i>Danh Sách Uploader
+                  </a>
+                </li>
+              </ul>
             </li>
             {% endif %} {% if current_user.is_authenticated %}
             <li class="nav-item">
@@ -249,67 +325,6 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18),
           0 1.5px 6px rgba(0, 0, 0, 0.1);
         background: #fff;
-      }
-      .advanced-search-dropdown::-webkit-scrollbar {
-        width: 6px;
-      }
-      .advanced-search-dropdown::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      .advanced-search-dropdown::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 3px;
-      }
-      .ranking-snapshot-wrapper {
-        border-top: 1px solid #e9ecef;
-        padding-top: 0.5rem;
-      }
-      .ranking-snapshot-scroll {
-        max-height: 260px;
-        overflow-y: auto;
-      }
-      .ranking-snapshot-item {
-        display: flex;
-        align-items: center;
-        padding: 6px 4px;
-        border-radius: 6px;
-      }
-      .ranking-snapshot-item:hover {
-        background: #f8f9fa;
-      }
-      .ranking-snapshot-thumb {
-        width: 40px;
-        height: 56px;
-        object-fit: cover;
-        border-radius: 4px;
-        margin-right: 8px;
-      }
-      .ranking-snapshot-rank {
-        width: 22px;
-        text-align: center;
-        font-weight: 600;
-        margin-right: 6px;
-        font-size: 0.75rem;
-      }
-      .ranking-snapshot-title {
-        flex: 1;
-        line-height: 1.2;
-        font-size: 0.72rem;
-        font-weight: 500;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-      }
-      .ranking-snapshot-meta {
-        font-size: 0.6rem;
-        color: #6c757d;
-      }
-      @media (max-width: 576px) {
-        .advanced-search-dropdown {
-          width: 100vw;
-          left: 0 !important;
-          right: 0 !important;
-        }
       }
       .advanced-search-dropdown::-webkit-scrollbar {
         width: 6px;

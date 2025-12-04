@@ -18,6 +18,13 @@ class User(db.Model, UserMixin):
     avatar_url = db.Column(db.Text, nullable=True)  # URL to avatar image
     display_name = db.Column(db.String(100), nullable=True)  # Display name for comments
     
+    # Ban system
+    is_banned = db.Column(db.Boolean, default=False)  # Có bị cấm không
+    ban_until = db.Column(db.DateTime, nullable=True)  # Cấm đến khi nào (None = vĩnh viễn)
+    ban_reason = db.Column(db.Text, nullable=True)  # Lý do cấm
+    banned_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Admin/Mod cấm
+    banned_at = db.Column(db.DateTime, nullable=True)  # Thời gian bị cấm
+    
     # User progression system
     points = db.Column(db.Integer, default=0)  # Điểm người dùng
     level = db.Column(db.Integer, default=1)  # Cấp độ
@@ -29,6 +36,45 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def is_currently_banned(self):
+        """Check if user is currently banned"""
+        if not self.is_banned:
+            return False
+        
+        # If ban_until is None, it's a permanent ban
+        if self.ban_until is None:
+            return True
+        
+        # Check if ban period has expired
+        if datetime.utcnow() > self.ban_until:
+            # Automatically unban if time has passed
+            self.is_banned = False
+            self.ban_until = None
+            db.session.commit()
+            return False
+        
+        return True
+    
+    def get_ban_info(self):
+        """Get ban information for display"""
+        if not self.is_currently_banned():
+            return None
+        
+        info = {
+            'is_permanent': self.ban_until is None,
+            'ban_until': self.ban_until,
+            'reason': self.ban_reason or 'Không có lý do',
+            'banned_at': self.banned_at
+        }
+        
+        if not info['is_permanent'] and self.ban_until:
+            remaining = self.ban_until - datetime.utcnow()
+            days = remaining.days
+            hours = remaining.seconds // 3600
+            info['remaining_days'] = days
+            info['remaining_hours'] = hours
+        
+        return info
 
     def is_admin(self):
         return self.role == 'admin'

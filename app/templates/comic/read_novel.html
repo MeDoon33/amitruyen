@@ -25,6 +25,18 @@
       <h1 class="text-center mb-4">{{ chapter.title }}</h1>
 
       <div class="chapter-navigation text-center mb-4">
+        {% if first_chapter and last_chapter %}
+        <div class="mb-2 d-flex flex-wrap justify-content-center gap-2">
+          <a href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=first_chapter.chapter_number) }}"
+             class="btn btn-sm btn-outline-secondary {% if chapter.id == first_chapter.id %}disabled{% endif %}" title="Chương đầu">
+             <i class="fas fa-angle-double-left"></i> Đầu
+          </a>
+          <a href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=last_chapter.chapter_number) }}"
+             class="btn btn-sm btn-outline-secondary {% if chapter.id == last_chapter.id %}disabled{% endif %}" title="Chương cuối">
+             Cuối <i class="fas fa-angle-double-right"></i>
+          </a>
+        </div>
+        {% endif %}
         {% if prev_chapter %}
         <a
           href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
@@ -48,6 +60,20 @@
         >
           Chương sau <i class="fas fa-chevron-right"></i>
         </a>
+        {% endif %}
+
+        {% if all_chapters %}
+        <div class="d-inline-block ms-2 mt-2 mt-md-0">
+          <select id="jumpChapterSelect" class="form-select form-select-sm"
+            onchange="jumpToChapter(this.value)" aria-label="Chọn chương">
+            <option value="" disabled selected>Nhảy tới chương...</option>
+            {% for ch in all_chapters %}
+              <option value="{{ ch.chapter_number }}" data-url="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=ch.chapter_number) }}" {% if ch.chapter_number == chapter.chapter_number %}selected{% endif %}>
+                Ch. {{ '%.2f'|format(ch.chapter_number) }} - {{ ch.title[:40] }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
         {% endif %}
       </div>
 
@@ -73,6 +99,172 @@
         <div class="mt-2 small text-muted">
           Chuyển đổi để giảm mỏi mắt khi đọc truyện chữ.
         </div>
+
+        <!-- Text-to-Speech Controls - DISABLED -->
+        <div class="tts-controls mt-4 p-3 border rounded bg-light" style="display: none;">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+              <i class="fas fa-volume-up text-primary"></i> Đọc truyện tự động
+            </h6>
+            <button 
+              class="btn btn-sm btn-outline-secondary"
+              onclick="toggleTTSPanel()"
+              id="tts-toggle-btn"
+              title="Đóng/Mở panel đọc tự động"
+            >
+              <i class="fas fa-chevron-up"></i>
+            </button>
+          </div>
+          
+          <div class="tts-buttons mb-3 d-flex justify-content-center gap-2 flex-wrap" id="tts-panel-content">
+            <button 
+              id="tts-play-btn" 
+              class="btn btn-success btn-sm"
+              onclick="ttsPlay()"
+            >
+              <i class="fas fa-play"></i> Phát
+            </button>
+            <button 
+              id="tts-pause-btn" 
+              class="btn btn-warning btn-sm"
+              onclick="ttsPause()"
+              disabled
+            >
+              <i class="fas fa-pause"></i> Tạm dừng
+            </button>
+            <button 
+              id="tts-stop-btn" 
+              class="btn btn-danger btn-sm"
+              onclick="ttsStop()"
+              disabled
+            >
+              <i class="fas fa-stop"></i> Dừng
+            </button>
+            <button 
+              class="btn btn-secondary btn-sm"
+              onclick="ttsSkipBackward()"
+              title="Đoạn trước"
+            >
+              <i class="fas fa-step-backward"></i>
+            </button>
+            <button 
+              class="btn btn-secondary btn-sm"
+              onclick="ttsSkipForward()"
+              title="Đoạn sau"
+            >
+              <i class="fas fa-step-forward"></i>
+            </button>
+          </div>
+
+          <div class="tts-settings">
+            <div class="row g-2 mb-2">
+              <div class="col-md-7">
+                <label class="form-label small mb-1 d-flex justify-content-between align-items-center">
+                  <span>Giọng đọc:</span>
+                  <button 
+                    class="btn btn-outline-secondary btn-sm px-2 py-0" 
+                    onclick="ttsRefreshVoices()"
+                    title="Làm mới danh sách giọng đọc"
+                    style="font-size: 0.75rem; line-height: 1.2;"
+                  >
+                    <i class="fas fa-sync-alt"></i>
+                  </button>
+                </label>
+                <select 
+                  id="tts-voice-select" 
+                  class="form-select form-select-sm"
+                  onchange="ttsSetVoice(this.value)"
+                  style="font-size: 0.85rem;"
+                >
+                  <option>Đang tải giọng đọc...</option>
+                </select>
+                <small id="tts-voice-info" class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                  <i class="fas fa-info-circle"></i> Chọn giọng đọc phù hợp
+                </small>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label small mb-1">
+                  Tốc độ: <span id="tts-speed-value">1.0x</span>
+                </label>
+                <input 
+                  type="range" 
+                  id="tts-speed-slider" 
+                  class="form-range"
+                  min="0.5" 
+                  max="2.0" 
+                  step="0.1" 
+                  value="1.0"
+                  oninput="ttsSetSpeed(this.value)"
+                />
+                <div class="d-flex justify-content-between small text-muted" style="font-size: 0.7rem;">
+                  <span>0.5x</span>
+                  <span>1.0x</span>
+                  <span>2.0x</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-check mb-2">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="tts-autoscroll"
+                checked
+                onchange="ttsSetAutoScroll(this.checked)"
+              />
+              <label class="form-check-label small" for="tts-autoscroll">
+                Tự động cuộn trang theo đoạn đang đọc
+              </label>
+            </div>
+
+            <div class="tts-status mt-2">
+              <small id="tts-status" class="text-muted">Đã dừng</small>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 d-flex flex-column align-items-center gap-2">
+          <div
+            class="d-flex align-items-center flex-wrap justify-content-center gap-2"
+          >
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              onclick="adjustFontSize(-0.1)"
+              title="Giảm cỡ chữ"
+            >
+              <i class="fas fa-minus"></i>
+            </button>
+            <div class="font-size-indicator px-2" id="fontSizeIndicator">
+              Cỡ: 1.1em
+            </div>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              onclick="adjustFontSize(0.1)"
+              title="Tăng cỡ chữ"
+            >
+              <i class="fas fa-plus"></i>
+            </button>
+            <button
+              class="btn btn-sm btn-outline-warning"
+              onclick="resetFontSize()"
+              title="Khôi phục mặc định"
+            >
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+          <input
+            type="range"
+            id="fontSizeSlider"
+            min="0.8"
+            max="2.2"
+            step="0.05"
+            value="1.1"
+            style="width: 280px"
+            oninput="setFontSizeFromSlider(this.value)"
+          />
+          <div class="small text-muted">
+            Điều chỉnh cỡ chữ phù hợp với mắt của bạn.
+          </div>
+        </div>
       </div>
 
       <div
@@ -92,6 +284,18 @@
       </div>
 
       <div class="chapter-navigation text-center mt-4">
+        {% if first_chapter and last_chapter %}
+        <div class="mb-2 d-flex flex-wrap justify-content-center gap-2">
+          <a href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=first_chapter.chapter_number) }}"
+             class="btn btn-sm btn-outline-secondary {% if chapter.id == first_chapter.id %}disabled{% endif %}" title="Chương đầu">
+             <i class="fas fa-angle-double-left"></i> Đầu
+          </a>
+          <a href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=last_chapter.chapter_number) }}"
+             class="btn btn-sm btn-outline-secondary {% if chapter.id == last_chapter.id %}disabled{% endif %}" title="Chương cuối">
+             Cuối <i class="fas fa-angle-double-right"></i>
+          </a>
+        </div>
+        {% endif %}
         {% if prev_chapter %}
         <a
           href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) }}"
@@ -124,22 +328,119 @@
 <style>
   .chapter-content {
     font-family: "Noto Serif", serif;
-    color: #333;
+    color: #181818;
     background-color: #fff;
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background-color 0.4s ease, color 0.3s ease;
+    text-shadow: 0 1px 0 #fff, 0 0px 2px #eee;
+  }
+
+  /* TTS Reading Highlight */
+  .chapter-content p.tts-reading {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+    padding-left: 1rem;
+    margin-left: -1rem;
+    transition: all 0.3s ease;
+  }
+
+  .night-mode .chapter-content p.tts-reading {
+    background-color: #3d3000;
+    border-left-color: #ffc107;
+  }
+
+  /* TTS Controls */
+  .tts-controls {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .night-mode .tts-controls {
+    background-color: #1a1a1a !important;
+    border-color: #444 !important;
+    color: #f0f0f0;
+  }
+
+  .night-mode .tts-controls h6 {
+    color: #f0f0f0;
+  }
+
+  .night-mode .tts-controls .form-label {
+    color: #ddd;
+  }
+
+  .night-mode .tts-controls .form-select {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #f0f0f0;
+  }
+
+  .night-mode .tts-controls .form-range {
+    accent-color: #ffc107;
+  }
+
+  #tts-panel-content {
+    transition: all 0.3s ease;
+    max-height: 1000px;
+    overflow: hidden;
+  }
+
+  #tts-panel-content.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #tts-toggle-btn i {
+    transition: transform 0.3s ease;
+  }
+
+  #tts-toggle-btn.collapsed i {
+    transform: rotate(180deg);
+  }
+
+  .tts-buttons .btn {
+    min-width: 85px;
+  }
+
+  .tts-buttons .btn-secondary {
+    min-width: 45px;
+  }
+
+  #tts-status {
+    font-weight: 600;
+    display: block;
+  }
+
+  #tts-voice-select {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  #tts-voice-select option {
+    padding: 0.5rem;
+  }
+
+  #tts-voice-info {
+    line-height: 1.4;
+    min-height: 1.2rem;
+  }
+
+  .night-mode #tts-voice-info {
+    color: #aaa !important;
   }
 
   /* Night mode styles */
   .night-mode .chapter-content {
     background-color: #121212 !important;
-    color: #e0e0e0 !important;
+    color: #f5f5fa !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    text-shadow: 0 1px 0 #222, 0 0px 2px #000;
   }
   .night-mode .chapter-content p {
-    color: #d0d0d0;
+    color: #f0f0f0;
   }
   .night-mode body,
   body.night-mode {
@@ -156,12 +457,37 @@
   .night-mode .reading-controls .btn-dark {
     background: #212529;
   }
+  .night-mode h1 {
+    color: #f0f0f0 !important;
+  }
+  .night-mode .chapter-navigation .btn {
+    border-color: #555;
+  }
+  .night-mode .chapter-navigation .btn-outline-primary,
+  .night-mode .chapter-navigation .btn-outline-secondary {
+    color: #9ecbff;
+    border-color: #555;
+  }
+  .night-mode .chapter-navigation .btn-outline-primary:hover,
+  .night-mode .chapter-navigation .btn-outline-secondary:hover {
+    background-color: #1e3a5f;
+    color: #fff;
+  }
 
   .reading-controls .btn {
     transition: all 0.25s ease;
   }
   .reading-controls .btn.active {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+  }
+
+  .font-size-indicator {
+    font-weight: 600;
+    min-width: 95px;
+    text-align: center;
+  }
+  #fontSizeSlider {
+    accent-color: #007bff;
   }
 
   .chapter-content p {
@@ -174,6 +500,11 @@
       font-size: 1em;
       padding: 1rem;
     }
+    
+    .tts-buttons .btn {
+      min-width: 70px;
+      font-size: 0.85rem;
+    }
   }
 </style>
 <script>
@@ -181,6 +512,14 @@
   document.addEventListener("DOMContentLoaded", function () {
     const saved = localStorage.getItem("novelReadingMode") || "day";
     setReadingMode(saved, true);
+    // Font size init
+    const savedFont = localStorage.getItem("novelFontSize");
+    if (savedFont) {
+      applyFontSize(parseFloat(savedFont));
+      document.getElementById("fontSizeSlider").value = parseFloat(savedFont);
+    } else {
+      applyFontSize(1.1);
+    }
   });
 
   function setReadingMode(mode, initial = false) {
@@ -201,5 +540,229 @@
       localStorage.setItem("novelReadingMode", mode);
     }
   }
+
+  // Font size adjustment logic
+  const MIN_FONT = 0.8;
+  const MAX_FONT = 2.2;
+  function adjustFontSize(delta) {
+    const content = document.getElementById("chapterContent");
+    let current = parseFloat(content.getAttribute("data-font-size") || 1.1);
+    let next = +(current + delta).toFixed(2);
+    if (next < MIN_FONT) next = MIN_FONT;
+    if (next > MAX_FONT) next = MAX_FONT;
+    applyFontSize(next);
+    document.getElementById("fontSizeSlider").value = next;
+  }
+  function applyFontSize(size) {
+    const content = document.getElementById("chapterContent");
+    content.style.fontSize = size + "em";
+    content.setAttribute("data-font-size", size);
+    const indicator = document.getElementById("fontSizeIndicator");
+    if (indicator) indicator.textContent = "Cỡ: " + size.toFixed(2) + "em";
+    localStorage.setItem("novelFontSize", size);
+  }
+  function resetFontSize() {
+    applyFontSize(1.1);
+    document.getElementById("fontSizeSlider").value = 1.1;
+  }
+  function setFontSizeFromSlider(val) {
+    applyFontSize(parseFloat(val));
+  }
+
+  // Precompute navigation URLs (empty string when not available)
+  const prevUrl = "{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=prev_chapter.chapter_number) if prev_chapter else '' }}";
+  const nextUrl = "{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=next_chapter.chapter_number) if next_chapter else '' }}";
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    const tag = document.activeElement.tagName.toLowerCase();
+    if (['input','textarea','select'].includes(tag)) return; // don't trigger while typing
+    switch (e.key) {
+      case 'ArrowLeft':
+        if (prevUrl) window.location.href = prevUrl;
+        break;
+      case 'ArrowRight':
+        if (nextUrl) window.location.href = nextUrl;
+        break;
+      case 'n':
+      case 'N': {
+        const root = document.documentElement;
+        const isNight = root.classList.contains('night-mode');
+        setReadingMode(isNight ? 'day' : 'night');
+        break;
+      }
+      case '+':
+        adjustFontSize(0.1);
+        break;
+      case '-':
+        adjustFontSize(-0.1);
+        break;
+      case '0':
+        resetFontSize();
+        break;
+      default:
+        break;
+    }
+  });
+
+  function jumpToChapter(num) {
+    if (!num) return;
+    const select = document.getElementById('jumpChapterSelect');
+    if (!select) return;
+    const opt = select.options[select.selectedIndex];
+    const url = opt ? opt.getAttribute('data-url') : null;
+    if (url) window.location.href = url;
+  }
+
+  // ====================================
+  // Text-to-Speech Integration - DISABLED
+  // ====================================
+  let ttsService = null;
+
+  function initTTS() {
+    // TTS feature disabled
+    return;
+    
+    if (!('speechSynthesis' in window)) {
+      console.error('Text-to-Speech not supported in this browser');
+      document.querySelector('.tts-controls').innerHTML = `
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          Trình duyệt của bạn không hỗ trợ đọc văn bản tự động. 
+          Vui lòng sử dụng Chrome, Edge, hoặc Safari.
+        </div>
+      `;
+      return;
+    }
+
+    // Load TTS service
+    const script = document.createElement('script');
+    script.src = "{{ url_for('static', filename='js/text-to-speech.js') }}";
+    script.onload = function() {
+      ttsService = new NovelTextToSpeech();
+      
+      // Update speed display
+      const savedSpeed = localStorage.getItem('tts-speed') || '1.0';
+      document.getElementById('tts-speed-value').textContent = parseFloat(savedSpeed).toFixed(1) + 'x';
+      document.getElementById('tts-speed-slider').value = savedSpeed;
+      
+      // Update voice info after voices are loaded
+      setTimeout(() => {
+        updateVoiceInfo();
+      }, 1000);
+    };
+    document.head.appendChild(script);
+  }
+
+  function ttsPlay() {
+    if (!ttsService) return;
+    const content = document.getElementById('chapterContent');
+    ttsService.play(content);
+  }
+
+  function ttsPause() {
+    if (!ttsService) return;
+    ttsService.pause();
+  }
+
+  function ttsStop() {
+    if (!ttsService) return;
+    ttsService.stop();
+  }
+
+  function ttsSetVoice(voiceName) {
+    if (!ttsService) return;
+    ttsService.setVoice(voiceName);
+    updateVoiceInfo();
+  }
+
+  function ttsSetSpeed(speed) {
+    if (!ttsService) return;
+    ttsService.setSpeed(speed);
+    document.getElementById('tts-speed-value').textContent = parseFloat(speed).toFixed(1) + 'x';
+  }
+
+  function ttsSetAutoScroll(enabled) {
+    if (!ttsService) return;
+    ttsService.setAutoScroll(enabled);
+  }
+
+  function ttsSkipForward() {
+    if (!ttsService) return;
+    ttsService.skipForward();
+  }
+
+  function ttsSkipBackward() {
+    if (!ttsService) return;
+    ttsService.skipBackward();
+  }
+
+  function ttsRefreshVoices() {
+    if (!ttsService) return;
+    
+    // Force reload voices
+    ttsService.loadVoices();
+    
+    // Show feedback
+    const btn = event.target.closest('button');
+    const icon = btn.querySelector('i');
+    icon.classList.add('fa-spin');
+    
+    setTimeout(() => {
+      icon.classList.remove('fa-spin');
+      updateVoiceInfo();
+    }, 500);
+  }
+
+  function updateVoiceInfo() {
+    if (!ttsService || !ttsService.selectedVoice) return;
+    
+    const infoElement = document.getElementById('tts-voice-info');
+    if (!infoElement) return;
+    
+    const voice = ttsService.selectedVoice;
+    const serviceType = voice.localService ? '📍 Offline' : '☁️ Online';
+    const lang = voice.lang;
+    
+    infoElement.innerHTML = `
+      <i class="fas fa-check-circle text-success"></i> 
+      <strong>${voice.name}</strong> • ${serviceType} • ${lang}
+    `;
+  }
+
+  function toggleTTSPanel() {
+    const panel = document.getElementById('tts-panel-content');
+    const toggleBtn = document.getElementById('tts-toggle-btn');
+    
+    if (panel.classList.contains('collapsed')) {
+      // Expand
+      panel.classList.remove('collapsed');
+      toggleBtn.classList.remove('collapsed');
+      toggleBtn.title = 'Đóng panel đọc tự động';
+      localStorage.setItem('tts-panel-collapsed', 'false');
+    } else {
+      // Collapse
+      panel.classList.add('collapsed');
+      toggleBtn.classList.add('collapsed');
+      toggleBtn.title = 'Mở panel đọc tự động';
+      localStorage.setItem('tts-panel-collapsed', 'true');
+    }
+  }
+
+  function ttsSkipForward() {
+    if (!ttsService) return;
+    ttsService.skipForward();
+  }
+
+  function ttsSkipBackward() {
+    if (!ttsService) return;
+    ttsService.skipBackward();
+  }
+
+  // Initialize TTS when page loads - DISABLED
+  document.addEventListener('DOMContentLoaded', function() {
+    // initTTS(); // TTS disabled
+  });
+
 </script>
 {% endblock %}

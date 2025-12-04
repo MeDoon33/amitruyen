@@ -102,87 +102,6 @@ def get_ranking_data(period):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@main.route('/test')
-def test_page():
-    return render_template('test.html')
-
-@main.route('/test-tabs')
-def test_tabs():
-    """Simple test page to check if tabs work"""
-    return '''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Test Tabs</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <style>
-            .bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        </style>
-    </head>
-    <body>
-        <div class="container mt-4">
-            <div class="card">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0">Test Ranking Tabs</h5>
-                    <ul class="nav nav-pills mt-2" id="ranking-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active text-white" href="#top-thang">Top Tháng</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="#top-tuan">Top Tuần</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white-50" href="#top-ngay">Top Ngày</a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="card-body">
-                    <div id="content">Click tabs above to test</div>
-                </div>
-            </div>
-        </div>
-        
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const tabs = document.querySelectorAll('#ranking-tabs .nav-link');
-                const content = document.getElementById('content');
-                
-                tabs.forEach(function(tab) {
-                    tab.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        console.log('Tab clicked:', this.textContent);
-                        
-                        // Update tab states
-                        tabs.forEach(function(t) {
-                            t.classList.remove('active', 'text-white');
-                            t.classList.add('text-white-50');
-                        });
-                        
-                        this.classList.add('active', 'text-white');
-                        this.classList.remove('text-white-50');
-                        
-                        // Update content
-                        const tabType = this.getAttribute('href').substring(1);
-                        content.innerHTML = 'Selected: ' + this.textContent + ' (' + tabType + ')';
-                        
-                        // Test API call
-                        const period = tabType.replace('top-', '');
-                        fetch('/api/ranking/' + period)
-                            .then(response => response.json())
-                            .then(data => {
-                                content.innerHTML += '<br>API Response: ' + JSON.stringify(data, null, 2);
-                            })
-                            .catch(error => {
-                                content.innerHTML += '<br>API Error: ' + error;
-                            });
-                    });
-                });
-            });
-        </script>
-    </body>
-    </html>
-    '''
-
 # Profile page (after login)
 from flask_login import login_required, current_user
 from app.models.comic import Follow, Comic
@@ -286,14 +205,3 @@ def get_comic_ranking():
         print(f"Error in comic ranking API: {e}")  # Debug print
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@main.route('/demo/vuong-gia')
-def demo_vuong_gia():
-    """Demo trang hiển thị hệ thống Vương Giả"""
-    return render_template('vuong_gia_demo.html')
-
-@main.route('/demo/toggle-switch')
-def demo_toggle_switch():
-    """Demo toggle switch cho Truyện Tranh/Chữ"""
-    from flask import send_file
-    import os
-    return send_file(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'demo_toggle_switch.html'))

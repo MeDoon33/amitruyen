@@ -1,7 +1,414 @@
-{% extends "base.html" %} {% block title %}{{ comic.title }}{% endblock %} {%
-block content %}
+{% extends "base.html" %} 
+{% block title %}{{ comic.title }}{% endblock %} 
+
+{% block styles %}
+<style>
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    /* Cover and info layout */
+    .comic-cover-col {
+      margin-bottom: 1.5rem;
+    }
+    
+    .comic-cover-col img {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    /* Title */
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.3;
+      margin-bottom: 1rem;
+    }
+    
+    .lead {
+      font-size: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    /* Badges */
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.5rem;
+      margin-right: 0.35rem;
+      margin-bottom: 0.4rem;
+      display: inline-block;
+      white-space: normal;
+      line-height: 1.3;
+    }
+    
+    /* Badges container */
+    .comic-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: flex-start;
+    }
+    
+    .comic-badges .badge {
+      margin: 0;
+      word-break: break-word;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .comic-badges .bg-primary,
+    .comic-badges .bg-secondary {
+      max-width: none;
+    }
+    
+    /* Stats */
+    .comic-stats p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+    
+    .comic-stats strong {
+      display: inline-block;
+      min-width: 90px;
+      font-size: 0.85rem;
+    }
+    
+    /* Uploader info */
+    .uploader-badge .badge {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.6rem;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .uploader-badge .btn-sm {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      margin-top: 0.5rem;
+      display: block;
+      width: 100%;
+    }
+    
+    /* Star rating */
+    .star-rating {
+      display: block;
+      margin-top: 0.25rem;
+    }
+    
+    .star-rating .star {
+      font-size: 1rem;
+    }
+    
+    .star-rating .ms-2 {
+      display: block;
+      margin-left: 0 !important;
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+    }
+    
+    /* Rating form */
+    #star-input {
+      font-size: 1.8em !important;
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .action-buttons .btn {
+      width: 100%;
+      padding: 0.6rem 1rem;
+      font-size: 0.95rem;
+    }
+    
+    .action-buttons .btn i {
+      margin-right: 0.5rem;
+    }
+    
+    /* Admin buttons */
+    .admin-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .admin-buttons .btn {
+      margin: 0 !important;
+      width: 100%;
+      padding: 0.6rem 1rem;
+    }
+    
+    /* Chapter list */
+    .chapter-list h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .chapter-item-wrapper {
+      margin-bottom: 0.5rem;
+    }
+    
+    .chapter-item {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .chapter-title {
+      flex: 1;
+      margin-right: 0.5rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .chapter-views {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
+    }
+    
+    .chapter-edit-btn {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      white-space: nowrap;
+    }
+    
+    /* Comments section */
+    .comments-list h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .comment-item img,
+    .reply-item img {
+      width: 36px !important;
+      height: 36px !important;
+    }
+    
+    .comment-item .me-3 {
+      margin-right: 0.75rem !important;
+    }
+    
+    .comment-item strong,
+    .reply-item strong {
+      font-size: 0.9rem;
+    }
+    
+    .comment-item p,
+    .reply-item p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .comment-actions {
+      gap: 0.5rem !important;
+      flex-wrap: wrap;
+    }
+    
+    .comment-actions .btn {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.6rem;
+    }
+    
+    .reply-form-container textarea {
+      font-size: 0.9rem;
+    }
+    
+    .reply-form-container .btn {
+      font-size: 0.85rem;
+      padding: 0.4rem 0.8rem;
+    }
+    
+    .replies-container {
+      margin-left: 1rem !important;
+    }
+    
+    .reply-item {
+      padding-left: 0.5rem !important;
+    }
+    
+    /* Uploader badge */
+    .uploader-badge {
+      max-width: 100%;
+    }
+    
+    /* Description */
+    #comic-description-short,
+    #comic-description-full {
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+  }
+  
+  /* Extra small screens */
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.3rem;
+    }
+    
+    .lead {
+      font-size: 0.95rem;
+    }
+    
+    /* Badges even smaller */
+    .badge {
+      font-size: 0.65rem;
+      padding: 0.25rem 0.4rem;
+    }
+    
+    .comic-badges {
+      gap: 0.3rem;
+    }
+    
+    .comic-badges .badge {
+      max-width: 120px;
+    }
+    
+    /* Uploader */
+    .uploader-badge .badge {
+      font-size: 0.75rem;
+      max-width: 180px;
+    }
+    
+    #star-input {
+      font-size: 1.5em !important;
+    }
+    
+    .chapter-title {
+      font-size: 0.85rem;
+    }
+    
+    .chapter-views {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.4rem;
+    }
+    
+    .comment-item img {
+      width: 32px !important;
+      height: 32px !important;
+    }
+    
+    .comment-item strong {
+      font-size: 0.85rem;
+    }
+    
+    .comment-item p {
+      font-size: 0.85rem;
+    }
+    
+    .comment-actions .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    
+    .replies-container {
+      margin-left: 0.5rem !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.3rem;
+    }
+    
+    .lead {
+      font-size: 0.95rem;
+    }
+    
+    .badge {
+      font-size: 0.7rem;
+      padding: 0.3rem 0.45rem;
+    }
+    
+    #star-input {
+      font-size: 1.5em !important;
+    }
+    
+    .chapter-item {
+      padding: 0.6rem;
+      font-size: 0.85rem;
+    }
+  }
+  
+  /* Comment reaction buttons */
+  .reaction-btn {
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.6rem;
+  }
+  
+  .reaction-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .reaction-btn.active {
+    font-weight: bold;
+    border-width: 2px;
+  }
+  
+  .reaction-btn.btn-outline-primary.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+  
+  .reaction-btn.btn-outline-danger.active {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  /* Reply form styling */
+  .reply-form-container {
+    background-color: #f8f9fa;
+    border-left: 3px solid #0d6efd;
+    padding: 1rem;
+    border-radius: 0.25rem;
+  }
+  
+  /* Replies container */
+  .replies-container {
+    background-color: rgba(13, 110, 253, 0.02);
+    border-radius: 0.25rem;
+    padding: 0.5rem 0;
+  }
+  
+  .reply-item {
+    transition: background-color 0.2s ease;
+  }
+  
+  .reply-item:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  /* Uploader info styling */
+  .uploader-badge {
+    display: inline-flex;
+    align-items: center;
+    max-width: 300px;
+    overflow: hidden;
+  }
+  
+  .uploader-badge .badge {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
 <div class="row">
-  <div class="col-md-4">
+  <div class="col-md-4 comic-cover-col">
     {% if earliest_chapter %}
     <a
       href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=earliest_chapter.chapter_number) }}"
@@ -30,21 +437,57 @@ block content %}
   </div>
   <div class="col-md-8">
     <h1>{{ comic.title }}</h1>
-    <p class="lead">by {{ comic.author }}</p>
+    <p class="lead">
+      <i class="fas fa-feather-alt me-1"></i>
+      <strong>Tác giả:</strong> {{ comic.author or 'Đang cập nhật' }}
+    </p>
+    
+    {% if comic.uploader %}
+    <p class="text-muted">
+      <i class="fas fa-upload me-1"></i>
+      <strong>Người đăng:</strong> 
+      <span class="uploader-badge">
+        <span class="badge bg-info text-dark" title="{{ comic.uploader.get_display_name() }}">
+          {{ comic.uploader.get_display_name_with_styled_title() | safe }}
+        </span>
+      </span>
+      <small class="ms-1">({{ comic.created_at.strftime('%d/%m/%Y') }})</small>
+      {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator()) %}
+      <a href="{{ url_for('admin.my_comics') }}?uploader_id={{ comic.uploader_id }}" 
+         class="btn btn-sm btn-outline-secondary ms-2"
+         title="Xem tất cả truyện của người này">
+        <i class="fas fa-list"></i> Truyện của {{ comic.uploader.username }}
+      </a>
+      {% endif %}
+    </p>
+    {% endif %}
 
-    <div class="mb-3">
+    <div class="mb-3 comic-badges">
       <span class="badge bg-primary">{{ comic.status }}</span>
       <span class="badge bg-secondary">{{ comic.genre }}</span>
-      {% if comic.tags %} {% for tag in comic.tags.split(',') %}
-      <span class="badge bg-info">{{ tag }}</span>
-      {% endfor %} {% endif %}
+      {% if comic.tags %} 
+        {% for tag in comic.tags.split(',') %}
+          {% set clean_tag = tag.strip().replace('#', '') %}
+          {% if clean_tag %}
+            <span class="badge bg-info" title="{{ clean_tag }}">
+              {{ clean_tag[:15] }}{% if clean_tag|length > 15 %}...{% endif %}
+            </span>
+          {% endif %}
+        {% endfor %} 
+      {% endif %}
     </div>
 
-    <div class="mb-3">
-      <p>{{ comic.description }}</p>
+    <div class="mb-3 comic-description-container">
+      <p id="comic-description-short" style="display: block">
+        {{ comic.description[:300] }}{% if comic.description|length > 300 %}...
+        <a href="#" id="show-more-desc">Xem thêm</a>{% endif %}
+      </p>
+      <p id="comic-description-full" style="display: none">
+        {{ comic.description }} <a href="#" id="show-less-desc">Thu gọn</a>
+      </p>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 comic-stats">
       <p>
         <strong>Uploaded:</strong> {{ comic.created_at.strftime('%Y-%m-%d')
         }}<br />
@@ -81,23 +524,17 @@ block content %}
         action="{{ url_for('comic.rate_comic', comic_id=comic.id) }}"
         class="mt-2"
       >
-        <label class="form-label"
-          >Đánh giá của bạn: {% if user_rating %}<span class="text-muted"
-            >(Bạn đã chọn {{ user_rating }} sao)</span
-          >{% endif %}</label
-        >
-        <div
-          id="star-input"
-          class="star-rating-input"
-          style="font-size: 2em; cursor: pointer"
-        >
+        <label class="form-label">
+          Đánh giá của bạn:
+          {% if user_rating %}<span class="text-muted">(Bạn đã chọn {{ user_rating }} sao)</span>{% endif %}
+        </label>
+        <div id="star-input" style="font-size: 2em; cursor: pointer">
           {% for i in range(1,6) %}
           <span
             class="star-input"
             data-value="{{ i }}"
             data-user-rating="{{ user_rating or 0 }}"
-            >&#9733;</span
-          >
+            >&#9733;</span>
           {% endfor %}
         </div>
         <input
@@ -113,10 +550,8 @@ block content %}
           const stars = document.querySelectorAll("#star-input .star-input");
           const ratingInput = document.getElementById("rating-value");
           const form = document.getElementById("star-rating-form");
-
           // Initialize star display based on current user rating
-          const userRating =
-            parseInt(stars[0].getAttribute("data-user-rating")) || 0;
+          const userRating = parseInt(stars[0].getAttribute("data-user-rating")) || 0;
           stars.forEach((star) => {
             const starValue = parseInt(star.getAttribute("data-value"));
             if (starValue <= userRating) {
@@ -127,7 +562,6 @@ block content %}
               star.style.opacity = "0.3";
             }
           });
-
           stars.forEach((star) => {
             star.addEventListener("click", function () {
               const val = this.getAttribute("data-value");
@@ -145,98 +579,103 @@ block content %}
           });
         });
       </script>
-
-      <!-- Action buttons -->
-      <div class="mt-3">
-        {% if earliest_chapter %}
-        <a
-          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=earliest_chapter.chapter_number) }}"
-          class="btn btn-primary"
-          ><i class="fas fa-play"></i> Đọc từ đầu</a
-        >
-        {% endif %} {% if resume_chapter %}
-        <a
-          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=resume_chapter.chapter_number) }}"
-          class="btn btn-outline-success ms-2"
-          ><i class="fas fa-redo"></i> Đọc tiếp (Ch. {{
-          resume_chapter.chapter_number }})</a
-        >
-        {% endif %} {% if latest_chapter and latest_chapter != earliest_chapter
-        %}
-        <a
-          href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=latest_chapter.chapter_number) }}"
-          class="btn btn-outline-info ms-2"
-          ><i class="fas fa-forward"></i> Chương mới nhất ({{
-          latest_chapter.chapter_number }})</a
-        >
-        {% endif %} {% if current_user.is_authenticated %}
-        <form
-          method="post"
-          action="{{ url_for('comic.toggle_follow', comic_id=comic.id) }}"
-          style="display: inline"
-        >
-          {% if is_following %}
-          <button type="submit" class="btn btn-outline-danger ms-2">
+    </div>
+    {% endif %}
+    
+    <div class="mb-3 action-buttons">
+      {% if earliest_chapter %}
+      <a
+        href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=earliest_chapter.chapter_number) }}"
+        class="btn btn-primary"
+      >
+        <i class="fas fa-play"></i> Đọc từ đầu
+      </a>
+      {% endif %} 
+      
+      {% if resume_chapter %}
+      <a
+        href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=resume_chapter.chapter_number) }}"
+        class="btn btn-outline-success"
+      >
+        <i class="fas fa-redo"></i> Đọc tiếp (Ch. {{ resume_chapter.chapter_number }})
+      </a>
+      {% endif %} 
+      
+      {% if latest_chapter and latest_chapter != earliest_chapter %}
+      <a
+        href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=latest_chapter.chapter_number) }}"
+        class="btn btn-outline-info"
+      >
+        <i class="fas fa-forward"></i> Chương mới nhất ({{ latest_chapter.chapter_number }})
+      </a>
+      {% endif %} 
+      
+      {% if current_user.is_authenticated %}
+      <form
+        method="post"
+        action="{{ url_for('comic.toggle_follow', comic_id=comic.id) }}"
+        class="d-inline w-100"
+      >
+        {% if is_following %}
+          <button type="submit" class="btn btn-outline-danger w-100">
             <i class="fas fa-heart-broken"></i> Bỏ theo dõi
           </button>
-          {% else %}
-          <button type="submit" class="btn btn-danger ms-2">
+        {% else %}
+          <button type="submit" class="btn btn-danger w-100">
             <i class="fas fa-heart"></i> Theo dõi
           </button>
-          {% endif %}
-        </form>
+        {% endif %}
+      </form>
         {% else %}
-        <a
-          href="{{ url_for('auth.login') }}"
-          class="btn btn-outline-secondary ms-2"
-        >
-          <i class="fas fa-heart"></i> Đăng nhập để theo dõi
-        </a>
+          <a
+            href="{{ url_for('auth.login') }}"
+            class="btn btn-outline-secondary ms-2"
+          >
+            <i class="fas fa-heart"></i> Đăng nhập để theo dõi
+          </a>
         {% endif %}
       </div>
 
-      {% if current_user.is_admin() or current_user.is_moderator() or
-      (comic.uploader_id == current_user.id and current_user.role == 'uploader')
-      %}
-      <div class="mt-3">
+      {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator() or
+        (comic.uploader_id == current_user.id and current_user.role == 'uploader')) %}
+      <div class="mt-3 admin-buttons">
         <a
           href="{{ url_for('admin.add_chapter', comic_id=comic.id) }}"
-          class="btn btn-success"
+          class="btn btn-success w-100"
           >Thêm Chương</a
         >
         <a
           href="{{ url_for('admin.edit_comic', comic_id=comic.id) }}"
-          class="btn btn-warning ms-2"
+          class="btn btn-warning w-100"
           >Chỉnh Sửa Truyện</a
         >
         <form
           method="post"
           action="{{ url_for('admin.delete_comic', comic_id=comic.id) }}"
-          style="display: inline"
+          class="d-inline w-100"
           onsubmit="return confirm('Bạn có chắc muốn xóa truyện này?');"
         >
-          <button type="submit" class="btn btn-danger ms-2">Xóa Truyện</button>
+          <button type="submit" class="btn btn-danger w-100">Xóa Truyện</button>
         </form>
       </div>
       {% endif %}
     </div>
-    {% endif %}
   </div>
 </div>
 
 <div class="row mt-4">
   <div class="col-12">
     <h2>Chapters</h2>
-    <div class="list-group">
+    <div class="list-group chapter-list">
       {% for chapter in chapters %}
-      <div class="d-flex align-items-center">
+      <div class="d-flex align-items-center chapter-item-wrapper">
         <a
           href="{{ url_for('comic.read_chapter', comic_id=comic.id, chapter_number=chapter.chapter_number) }}"
-          class="list-group-item list-group-item-action flex-grow-1"
+          class="list-group-item list-group-item-action flex-grow-1 chapter-item"
         >
-          Chapter {{ chapter.chapter_number }} {% if chapter.title %}- {{
-          chapter.title }}{% endif %}
-          <span class="badge bg-primary rounded-pill"
+          <span class="chapter-title">Chapter {{ chapter.chapter_number }} {% if chapter.title %}- {{
+          chapter.title }}{% endif %}</span>
+          <span class="badge bg-primary rounded-pill chapter-views"
             >{{ chapter.views }} views</span
           >
         </a>
@@ -245,7 +684,7 @@ block content %}
         'uploader') ) %}
         <a
           href="{{ url_for('admin.edit_chapter', chapter_id=chapter.id) }}"
-          class="btn btn-sm btn-outline-warning ms-2"
+          class="btn btn-sm btn-outline-warning ms-2 chapter-edit-btn"
           >Edit</a
         >
         {% endif %}
@@ -253,7 +692,7 @@ block content %}
       {% endfor %}
     </div>
   </div>
-</div>
+</div>  
 
 <!-- Comments Section -->
 <div class="row mt-5">
@@ -299,8 +738,12 @@ block content %}
 
     <!-- Comments List -->
     <div class="comments-list">
-      {% if comments %} {% for comment in comments %}
-      <div class="comment-item border-bottom py-3">
+      {% if comments %} 
+      {% for comment in comments %}
+      <div
+        class="comment-item border-bottom py-3{% if comment.is_hidden %} bg-light bg-opacity-25{% endif %}"
+        id="comment-{{ comment.id }}"
+      >
         <div class="d-flex align-items-start">
           <img
             src="{{ comment.user.get_avatar_url() }}"
@@ -317,12 +760,243 @@ block content %}
               <small class="text-muted"
                 >{{ comment.created_at.strftime('%d/%m/%Y %H:%M') }}</small
               >
+              {% if comment.is_hidden %}
+              <span class="badge bg-warning text-dark ms-2">Đã ẩn</span>
+              {% endif %}
             </div>
-            <p class="mb-0">{{ comment.content }}</p>
+            <p class="mb-2">{{ comment.content }}</p>
+
+            <!-- Like/Dislike and Reply buttons -->
+            <div class="comment-actions d-flex align-items-center gap-3 mb-2">
+              {% if current_user.is_authenticated %}
+              <!-- Like button -->
+              <button 
+                class="btn btn-sm btn-outline-primary reaction-btn {% if user_reactions.get(comment.id) == 'like' %}active{% endif %}"
+                data-comment-id="{{ comment.id }}"
+                data-reaction="like"
+                onclick="reactToComment({{ comment.id }}, 'like')"
+              >
+                <i class="fas fa-thumbs-up"></i> 
+                <span class="likes-count">{{ comment.likes_count }}</span>
+              </button>
+              
+              <!-- Dislike button -->
+              <button 
+                class="btn btn-sm btn-outline-danger reaction-btn {% if user_reactions.get(comment.id) == 'dislike' %}active{% endif %}"
+                data-comment-id="{{ comment.id }}"
+                data-reaction="dislike"
+                onclick="reactToComment({{ comment.id }}, 'dislike')"
+              >
+                <i class="fas fa-thumbs-down"></i>
+                <span class="dislikes-count">{{ comment.dislikes_count }}</span>
+              </button>
+              
+              <!-- Reply button -->
+              <button 
+                class="btn btn-sm btn-outline-secondary"
+                onclick="toggleReplyForm({{ comment.id }})"
+              >
+                <i class="fas fa-reply"></i> Trả lời
+              </button>
+              {% else %}
+              <!-- Show counts only for non-authenticated users -->
+              <span class="text-muted">
+                <i class="fas fa-thumbs-up"></i> {{ comment.likes_count }}
+              </span>
+              <span class="text-muted">
+                <i class="fas fa-thumbs-down"></i> {{ comment.dislikes_count }}
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Reply form (hidden by default) -->
+            {% if current_user.is_authenticated %}
+            <div class="reply-form-container mb-3" id="reply-form-{{ comment.id }}" style="display: none;">
+              <form
+                action="{{ url_for('comic.add_comment', comic_id=comic.id) }}"
+                method="POST"
+                class="needs-validation"
+                novalidate
+              >
+                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                <div class="d-flex gap-2">
+                  <img
+                    src="{{ current_user.get_avatar_url() }}"
+                    alt="{{ current_user.get_display_name() }}"
+                    class="rounded-circle"
+                    style="width: 32px; height: 32px; object-fit: cover"
+                  />
+                  <div class="flex-grow-1">
+                    <textarea
+                      class="form-control form-control-sm"
+                      name="content"
+                      rows="2"
+                      placeholder="Viết trả lời..."
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+                <div class="mt-2 text-end">
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="toggleReplyForm({{ comment.id }})">
+                    Hủy
+                  </button>
+                  <button type="submit" class="btn btn-sm btn-primary">
+                    Gửi
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endif %}
+
+            <!-- Replies -->
+            {% set replies = comment.get_all_replies() if (current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator())) else comment.get_replies() %}
+            {% if replies %}
+            <div class="replies-container ms-4 mt-3">
+              {% for reply in replies %}
+              <div class="reply-item border-start border-3 border-primary ps-3 mb-3{% if reply.is_hidden %} bg-light bg-opacity-25{% endif %}"
+                   id="comment-{{ reply.id }}">
+                <div class="d-flex align-items-start">
+                  <img
+                    src="{{ reply.user.get_avatar_url() }}"
+                    alt="{{ reply.user.get_display_name() }}"
+                    class="rounded-circle me-2"
+                    style="width: 32px; height: 32px; object-fit: cover"
+                  />
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                      <strong class="me-2" style="font-size: 0.9rem;">
+                        {{ reply.user.get_display_name_with_styled_title() | safe }}
+                      </strong>
+                      <small class="text-muted" style="font-size: 0.85rem;">
+                        {{ reply.created_at.strftime('%d/%m/%Y %H:%M') }}
+                      </small>
+                      {% if reply.is_hidden %}
+                      <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Đã ẩn</span>
+                      {% endif %}
+                    </div>
+                    <p class="mb-2" style="font-size: 0.9rem;">{{ reply.content }}</p>
+
+                    <!-- Reply Like/Dislike -->
+                    <div class="comment-actions d-flex align-items-center gap-2">
+                      {% if current_user.is_authenticated %}
+                      <button 
+                        class="btn btn-sm btn-outline-primary reaction-btn {% if user_reactions.get(reply.id) == 'like' %}active{% endif %}"
+                        data-comment-id="{{ reply.id }}"
+                        data-reaction="like"
+                        onclick="reactToComment({{ reply.id }}, 'like')"
+                        style="font-size: 0.8rem; padding: 0.2rem 0.5rem;"
+                      >
+                        <i class="fas fa-thumbs-up"></i> 
+                        <span class="likes-count">{{ reply.likes_count }}</span>
+                      </button>
+                      
+                      <button 
+                        class="btn btn-sm btn-outline-danger reaction-btn {% if user_reactions.get(reply.id) == 'dislike' %}active{% endif %}"
+                        data-comment-id="{{ reply.id }}"
+                        data-reaction="dislike"
+                        onclick="reactToComment({{ reply.id }}, 'dislike')"
+                        style="font-size: 0.8rem; padding: 0.2rem 0.5rem;"
+                      >
+                        <i class="fas fa-thumbs-down"></i>
+                        <span class="dislikes-count">{{ reply.dislikes_count }}</span>
+                      </button>
+                      {% else %}
+                      <span class="text-muted" style="font-size: 0.85rem;">
+                        <i class="fas fa-thumbs-up"></i> {{ reply.likes_count }}
+                      </span>
+                      <span class="text-muted" style="font-size: 0.85rem;">
+                        <i class="fas fa-thumbs-down"></i> {{ reply.dislikes_count }}
+                      </span>
+                      {% endif %}
+                    </div>
+
+                    <!-- Admin/Moderator Actions for Reply -->
+                    {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator()) %}
+                    <div class="mt-2">
+                      {% if reply.is_hidden %}
+                      <form
+                        action="{{ url_for('comic.unhide_comment', comic_id=comic.id, comment_id=reply.id) }}"
+                        method="POST"
+                        class="d-inline"
+                      >
+                        <button type="submit" class="btn btn-sm btn-success">
+                          <i class="fas fa-eye"></i> Hiện
+                        </button>
+                      </form>
+                      {% else %}
+                      <form
+                        action="{{ url_for('comic.hide_comment', comic_id=comic.id, comment_id=reply.id) }}"
+                        method="POST"
+                        class="d-inline"
+                      >
+                        <button type="submit" class="btn btn-sm btn-warning">
+                          <i class="fas fa-eye-slash"></i> Ẩn
+                        </button>
+                      </form>
+                      {% endif %}
+                      {% if current_user.is_admin() %}
+                      <form
+                        action="{{ url_for('comic.delete_comment', comic_id=comic.id, comment_id=reply.id) }}"
+                        method="POST"
+                        class="d-inline"
+                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn trả lời này không?');"
+                      >
+                        <button type="submit" class="btn btn-sm btn-danger">
+                          <i class="fas fa-trash"></i> Xóa
+                        </button>
+                      </form>
+                      {% endif %}
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Admin/Moderator Actions -->
+            {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_moderator()) %}
+            <div class="mt-2">
+              {% if comment.is_hidden %}
+              <form
+                action="{{ url_for('comic.unhide_comment', comic_id=comic.id, comment_id=comment.id) }}"
+                method="POST"
+                class="d-inline"
+              >
+                <button type="submit" class="btn btn-sm btn-success">
+                  <i class="fas fa-eye"></i> Hiện
+                </button>
+              </form>
+              {% else %}
+              <form
+                action="{{ url_for('comic.hide_comment', comic_id=comic.id, comment_id=comment.id) }}"
+                method="POST"
+                class="d-inline"
+              >
+                <button type="submit" class="btn btn-sm btn-warning">
+                  <i class="fas fa-eye-slash"></i> Ẩn
+                </button>
+              </form>
+              {% endif %} {% if current_user.is_admin() %}
+              <form
+                action="{{ url_for('comic.delete_comment', comic_id=comic.id, comment_id=comment.id) }}"
+                method="POST"
+                class="d-inline"
+                onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn bình luận này không?');"
+              >
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <i class="fas fa-trash"></i> Xóa
+                </button>
+              </form>
+              {% endif %}
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
-      {% endfor %} {% else %}
+     {% endfor %}
+      {% else %}
       <div class="text-center text-muted py-4">
         <p>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
       </div>
@@ -331,7 +1005,8 @@ block content %}
   </div>
 </div>
 
-{% endblock %} {% block scripts %}
+{% endblock %}
+{% block scripts %}
 <script>
   // Optional subtle hover effect for cover link
   document.addEventListener("DOMContentLoaded", function () {
@@ -346,6 +1021,91 @@ block content %}
         cover.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
       });
     }
+
+    // Xem thêm mô tả truyện
+    var showMore = document.getElementById("show-more-desc");
+    var showLess = document.getElementById("show-less-desc");
+    var shortDesc = document.getElementById("comic-description-short");
+    var fullDesc = document.getElementById("comic-description-full");
+    if (showMore) {
+      showMore.addEventListener("click", function (e) {
+        e.preventDefault();
+        shortDesc.style.display = "none";
+        fullDesc.style.display = "block";
+      });
+    }
+    if (showLess) {
+      showLess.addEventListener("click", function (e) {
+        e.preventDefault();
+        fullDesc.style.display = "none";
+        shortDesc.style.display = "block";
+      });
+    }
   });
+
+  // Toggle reply form
+  function toggleReplyForm(commentId) {
+    const replyForm = document.getElementById('reply-form-' + commentId);
+    if (replyForm) {
+      replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+      
+      // Focus on textarea when opening
+      if (replyForm.style.display === 'block') {
+        const textarea = replyForm.querySelector('textarea');
+        if (textarea) {
+          textarea.focus();
+        }
+      }
+    }
+  }
+
+  // React to comment (like/dislike)
+  function reactToComment(commentId, reactionType) {
+    const formData = new FormData();
+    formData.append('reaction_type', reactionType);
+
+    fetch(`{{ url_for('comic.view_comic', comic_id=comic.id) }}/comment/${commentId}/react`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update counts
+        const commentElement = document.getElementById('comment-' + commentId);
+        if (commentElement) {
+          const likesCount = commentElement.querySelector('.likes-count');
+          const dislikesCount = commentElement.querySelector('.dislikes-count');
+          
+          if (likesCount) likesCount.textContent = data.likes_count;
+          if (dislikesCount) dislikesCount.textContent = data.dislikes_count;
+          
+          // Update button states
+          const likeBtn = commentElement.querySelector('[data-reaction="like"]');
+          const dislikeBtn = commentElement.querySelector('[data-reaction="dislike"]');
+          
+          if (likeBtn && dislikeBtn) {
+            likeBtn.classList.remove('active');
+            dislikeBtn.classList.remove('active');
+            
+            if (data.user_reaction === 'like') {
+              likeBtn.classList.add('active');
+            } else if (data.user_reaction === 'dislike') {
+              dislikeBtn.classList.add('active');
+            }
+          }
+        }
+      } else {
+        alert(data.error || 'Có lỗi xảy ra');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra khi xử lý reaction');
+    });
+  }
 </script>
 {% endblock %}

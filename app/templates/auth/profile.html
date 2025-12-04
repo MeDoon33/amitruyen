@@ -107,49 +107,91 @@ content %}
   @media (max-width: 767.98px) {
     .profile-container {
       flex-direction: column;
+      margin-top: 20px;
     }
     .profile-sidebar {
       width: 100%;
       margin-right: 0;
       margin-bottom: 16px;
-      padding: 12px 0;
+      padding: 8px 0;
+      min-height: auto;
     }
     .profile-sidebar ul {
       display: flex;
       flex-wrap: wrap;
+      gap: 4px;
     }
     .profile-sidebar li {
-      flex: 1 1 50%;
-      padding: 10px 16px;
-      font-size: 0.9rem;
+      flex: 1 1 calc(50% - 4px);
+      padding: 12px 12px;
+      font-size: 0.85rem;
       border-bottom: 1px solid #2a2a2a;
+      text-align: center;
     }
+    .profile-sidebar li i {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 1.1rem;
+    }
+  }
+
+  /* Extra small screens - icon only */
+  @media (max-width: 480px) {
+    .profile-sidebar li {
+      font-size: 0;
+      padding: 12px 8px;
+    }
+    .profile-sidebar li i {
+      display: inline-block;
+      margin-bottom: 0;
+      font-size: 1.2rem;
+    }
+    .fanpage-text,
+    .logout-text {
+      display: none;
+    }
+  }
+
+  @media (max-width: 767.98px) {
     .profile-main {
-      padding: 20px;
+      padding: 16px;
     }
     .profile-info-table td {
       display: block;
       width: 100%;
+      padding: 8px 0;
     }
     .profile-info-table tr {
       display: block;
-      padding: 8px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid #333;
     }
     .profile-info-table td:first-child {
       width: auto;
       font-weight: 600;
       color: #ccc;
+      margin-bottom: 4px;
     }
     .profile-info-table {
       border-collapse: separate;
     }
     .profile-avatar {
-      width: 70px;
-      height: 70px;
-      margin: 0 0 12px 0;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 16px;
     }
     .tab-content h2 {
       font-size: 1.35rem;
+      margin-bottom: 16px;
+    }
+    .form-group input,
+    .form-group textarea {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 12px 20px;
+      font-size: 1rem;
     }
     .fanpage-item {
       flex: 1 1 100%;
@@ -162,6 +204,75 @@ content %}
     }
     .profile-sidebar li.active {
       background: #2d2d2d;
+    }
+
+    /* Card layout for followed comics */
+    .row .col-lg-3,
+    .row .col-md-4,
+    .row .col-sm-6 {
+      padding-left: 8px;
+      padding-right: 8px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      font-size: 0.9rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+    }
+
+    .card-text {
+      font-size: 0.85rem;
+    }
+
+    /* Edit buttons on mobile */
+    .edit-name-btn {
+      margin-left: 8px !important;
+      padding: 6px 10px !important;
+    }
+
+    .edit-name-btn .btn-text {
+      display: none;
+    }
+
+    .avatar-edit-btn {
+      width: 36px !important;
+      height: 36px !important;
+      font-size: 1rem;
+    }
+
+    /* Followed comics grid */
+    .row {
+      margin-left: -8px;
+      margin-right: -8px;
+    }
+
+    /* Empty states */
+    .text-center.text-muted.py-5 {
+      padding: 2rem 1rem !important;
+    }
+
+    .text-center.text-muted.py-5 i {
+      font-size: 2rem !important;
+    }
+
+    .text-center.text-muted.py-5 .btn {
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    /* Form helpers */
+    .form-group small {
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+
+    /* Avatar preview in edit */
+    .tab-content .profile-avatar {
+      width: 100px;
+      height: 100px;
     }
   }
 
@@ -196,6 +307,163 @@ content %}
       display: flex;
     }
   }
+
+  /* Achievements Styles */
+  .achievements-grid {
+    margin-top: 20px;
+  }
+
+  .achievement-category {
+    margin-bottom: 40px;
+  }
+
+  .category-title {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #333;
+    color: #fff;
+  }
+
+  .badges-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .badge-card {
+    background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 2px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .badge-card.earned {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+  }
+
+  .badge-card.earned::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 215, 0, 0.1),
+      transparent
+    );
+    animation: shine 3s infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+      transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+  }
+
+  .badge-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(255, 215, 0, 0.3);
+  }
+
+  .badge-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 50%;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+  }
+
+  .badge-info {
+    flex: 1;
+  }
+
+  .badge-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffd700;
+    margin-bottom: 4px;
+  }
+
+  .badge-desc {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .badge-earned {
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+  }
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+    border: 0.25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+  }
+
+  @keyframes spinner-border {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .text-primary {
+    color: #007bff;
+  }
+
+  /* Mobile responsive for achievements */
+  @media (max-width: 767.98px) {
+    .badges-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .badge-card {
+      padding: 16px;
+    }
+
+    .badge-icon {
+      font-size: 2.5rem;
+      width: 50px;
+      height: 50px;
+    }
+
+    .badge-name {
+      font-size: 1rem;
+    }
+
+    .badge-desc {
+      font-size: 0.85rem;
+    }
+
+    .category-title {
+      font-size: 1.2rem;
+    }
+  }
 </style>
 <div class="profile-container">
   <div class="profile-hamburger">
@@ -204,13 +472,27 @@ content %}
   </div>
   <div class="profile-sidebar" id="profileSidebar">
     <ul>
-      <li class="tab-item active" data-tab="info">Thông tin tài khoản</li>
-      <li class="tab-item" data-tab="displayname">Đổi tên hiển thị</li>
-      <li class="tab-item" data-tab="follow">Truyện theo dõi</li>
-      <li class="tab-item" data-tab="coin">Linh Thạch</li>
-      <li class="tab-item" data-tab="notification">Thông báo</li>
-      <li class="tab-item" data-tab="password">Đổi mật khẩu</li>
-      <li class="tab-item" data-tab="avatar">Đổi avatar</li>
+      <li class="tab-item active" data-tab="info">
+        <i class="fas fa-user"></i> Thông tin tài khoản
+      </li>
+      <li class="tab-item" data-tab="displayname">
+        <i class="fas fa-edit"></i> Đổi tên hiển thị
+      </li>
+      <li class="tab-item" data-tab="follow">
+        <i class="fas fa-heart"></i> Truyện theo dõi
+      </li>
+      <li class="tab-item" data-tab="achievements">
+        <i class="fas fa-trophy"></i> Thành Tựu
+      </li>
+      <li class="tab-item" data-tab="notification">
+        <i class="fas fa-bell"></i> Thông báo
+      </li>
+      <li class="tab-item" data-tab="password">
+        <i class="fas fa-lock"></i> Đổi mật khẩu
+      </li>
+      <li class="tab-item" data-tab="avatar">
+        <i class="fas fa-camera"></i> Đổi avatar
+      </li>
       <li class="fanpage-item">
         <a
           href="https://web.facebook.com/profile.php?id=100069614863695"
@@ -220,22 +502,26 @@ content %}
             text-decoration: none;
             display: flex;
             align-items: center;
+            justify-content: center;
           "
         >
           <i
             class="fab fa-facebook-square"
             style="margin-right: 8px; color: #1877f2"
           ></i>
-          Fanpage Facebook
+          <span class="fanpage-text">Fanpage Facebook</span>
         </a>
       </li>
-      <li class="logout-item">Thoát</li>
+      <li class="logout-item">
+        <i class="fas fa-sign-out-alt"></i>
+        <span class="logout-text">Thoát</span>
+      </li>
     </ul>
   </div>
   <div class="profile-main">
     <!-- Tab: Thông tin tài khoản -->
     <div class="tab-content active" id="tab-info">
-      <div class="profile-avatar">
+      <div class="profile-avatar" style="position: relative">
         <img
           src="{{ user.get_avatar_url() }}"
           alt="Avatar"
@@ -246,6 +532,26 @@ content %}
             object-fit: cover;
           "
         />
+        <button
+          onclick="document.querySelector('[data-tab=avatar]').click()"
+          class="avatar-edit-btn"
+          style="
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 32px;
+            height: 32px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          "
+          title="Nhấn để đổi avatar"
+        >
+          <i class="fas fa-camera"></i>
+        </button>
       </div>
       <h2>Thông tin tài khoản</h2>
       <table class="profile-info-table">
@@ -255,7 +561,26 @@ content %}
         </tr>
         <tr>
           <td>Tên hiển thị</td>
-          <td>{{ user.get_display_name_with_styled_title() | safe }}</td>
+          <td>
+            {{ user.get_display_name_with_styled_title() | safe }}
+            <button
+              onclick="document.querySelector('[data-tab=displayname]').click()"
+              class="edit-name-btn"
+              style="
+                margin-left: 10px;
+                padding: 4px 12px;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 0.85rem;
+              "
+              title="Nhấn để chỉnh sửa tên hiển thị"
+            >
+              <i class="fas fa-edit"></i> <span class="btn-text">Sửa</span>
+            </button>
+          </td>
         </tr>
         <tr>
           <td>Email</td>
@@ -349,10 +674,19 @@ content %}
       {% endif %}
     </div>
 
-    <!-- Tab: Linh Thạch -->
-    <div class="tab-content" id="tab-coin">
-      <h2>Linh Thạch</h2>
-      <p style="color: #aaa">Chức năng đang được phát triển...</p>
+    <!-- Tab: Thành Tựu -->
+    <div class="tab-content" id="tab-achievements">
+      <h2>
+        <i class="fas fa-trophy" style="margin-right: 10px; color: #ffd700"></i
+        >Thành Tựu
+      </h2>
+      <div id="achievements-container">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Đang tải...</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Tab: Thông báo -->
@@ -454,6 +788,112 @@ content %}
     toggleBtn.addEventListener("click", () => {
       sidebar.classList.toggle("open");
     });
+  }
+
+  // Load achievements when tab is clicked
+  let achievementsLoaded = false;
+  document
+    .querySelector('[data-tab="achievements"]')
+    .addEventListener("click", function () {
+      if (!achievementsLoaded) {
+        loadAchievements();
+        achievementsLoaded = true;
+      }
+    });
+
+  function loadAchievements() {
+    fetch("/progression/api/user/badges")
+      .then((response) => response.json())
+      .then((data) => {
+        const container = document.getElementById("achievements-container");
+
+        if (data.disabled) {
+          container.innerHTML = `
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-tools fa-3x mb-3"></i>
+              <p>${data.message || "Chức năng đang được phát triển..."}</p>
+            </div>
+          `;
+          return;
+        }
+
+        if (!data.success || !data.badges || data.badges.length === 0) {
+          container.innerHTML = `
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-medal fa-3x mb-3" style="opacity: 0.3;"></i>
+              <p>Bạn chưa có thành tựu nào.</p>
+              <p style="font-size: 14px; color: #888;">Hãy đọc truyện, bình luận và tương tác để mở khóa thành tựu!</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Group badges by category
+        const groupedBadges = {};
+        data.badges.forEach((badge) => {
+          const category = badge.category || "other";
+          if (!groupedBadges[category]) {
+            groupedBadges[category] = [];
+          }
+          groupedBadges[category].push(badge);
+        });
+
+        // Category display names
+        const categoryNames = {
+          reading: "📖 Đọc Truyện",
+          commenting: "💬 Bình Luận",
+          uploading: "📤 Đăng Truyện",
+          rating: "⭐ Đánh Giá",
+          social: "👥 Tương Tác",
+          special: "✨ Đặc Biệt",
+          other: "🎯 Khác",
+        };
+
+        let html = '<div class="achievements-grid">';
+
+        Object.keys(groupedBadges).forEach((category) => {
+          html += `
+            <div class="achievement-category">
+              <h3 class="category-title">${
+                categoryNames[category] || category
+              }</h3>
+              <div class="badges-row">
+          `;
+
+          groupedBadges[category].forEach((badge) => {
+            const earnedDate = new Date(badge.earned_at).toLocaleDateString(
+              "vi-VN"
+            );
+            html += `
+              <div class="badge-card earned">
+                <div class="badge-icon">${badge.icon || "🏆"}</div>
+                <div class="badge-info">
+                  <div class="badge-name">${badge.name}</div>
+                  <div class="badge-desc">${badge.description || ""}</div>
+                  <div class="badge-earned">Đạt được: ${earnedDate}</div>
+                </div>
+              </div>
+            `;
+          });
+
+          html += `
+              </div>
+            </div>
+          `;
+        });
+
+        html += "</div>";
+        container.innerHTML = html;
+      })
+      .catch((error) => {
+        console.error("Error loading achievements:", error);
+        document.getElementById("achievements-container").innerHTML = `
+          <div class="text-center text-danger py-5">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <p>Không thể tải thành tựu. Vui lòng thử lại sau.</p>
+          </div>
+        `;
+      });
   }
 </script>
 {% endblock %}

@@ -24,6 +24,9 @@ class Comic(db.Model):
     rating_count = db.Column(db.Integer, default=0)  # Số lượt đánh giá để tính trung bình
     follow_count = db.Column(db.Integer, default=0)  # Số người theo dõi
     tags = db.Column(db.String(500))  # Store as comma-separated values
+    
+    # Relationship với User (người đăng)
+    uploader = db.relationship('User', backref=db.backref('uploaded_comics', lazy=True), foreign_keys=[uploader_id])
 
 class Chapter(db.Model):
     __tablename__ = 'chapters'
@@ -72,12 +75,53 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     comic_id = db.Column(db.Integer, db.ForeignKey('comics.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    is_hidden = db.Column(db.Boolean, default=False, nullable=False)  # For soft delete/hide by moderator
+    
+    # Reply functionality (nested comments)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=True)  # NULL = top-level comment
+    
+    # Like/Dislike counts
+    likes_count = db.Column(db.Integer, default=0, nullable=False)
+    dislikes_count = db.Column(db.Integer, default=0, nullable=False)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     user = db.relationship('User', backref=db.backref('comments', lazy=True))
     comic = db.relationship('Comic', backref=db.backref('comments', lazy=True, order_by='Comment.created_at.desc()'))
+    
+    # Self-referential relationship for replies
+    replies = db.relationship('Comment', 
+                              backref=db.backref('parent', remote_side=[id]),
+                              lazy='dynamic',
+                              order_by='Comment.created_at.asc()')
+    
+    def get_replies(self):
+        """Get all non-hidden replies to this comment"""
+        return self.replies.filter_by(is_hidden=False).all()
+    
+    def get_all_replies(self):
+        """Get all replies including hidden ones (for admins)"""
+        return self.replies.all()
+
+
+class CommentReaction(db.Model):
+    """Track user likes/dislikes on comments"""
+    __tablename__ = 'comment_reactions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=False)
+    reaction_type = db.Column(db.String(10), nullable=False)  # 'like' or 'dislike'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Unique constraint: mỗi user chỉ được react 1 lần cho mỗi comment
+    __table_args__ = (db.UniqueConstraint('user_id', 'comment_id', name='unique_user_comment_reaction'),)
+    
+    # Relationships
+    user = db.relationship('User', backref=db.backref('comment_reactions', lazy=True))
+    comment = db.relationship('Comment', backref=db.backref('reactions', lazy=True))
 
 class Follow(db.Model):
     __tablename__ = 'follows'

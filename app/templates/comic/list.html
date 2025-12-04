@@ -1,5 +1,27 @@
 {% extends "base.html" %} {% block title %}Danh Sách Truyện{% endblock %} {%
 block content %}
+<style>
+  .card-img-top {
+    max-height: 220px;
+    object-fit: cover;
+    width: 100%;
+  }
+  .card-genre-badges {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .uploader-text {
+    display: inline-block;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+</style>
 <div class="row">
   <div class="col-12">
     <h1 class="mb-4">Danh Sách Truyện</h1>
@@ -7,26 +29,42 @@ block content %}
     <div class="filter-section mb-4">
       <form class="row g-3" method="GET">
         <div class="col-md-3">
+          <input
+            type="text"
+            class="form-control"
+            name="search"
+            placeholder="Tìm tên truyện, tác giả..."
+            value="{{ search or '' }}"
+          />
+        </div>
+        <div class="col-md-3">
           <select class="form-select" name="genre">
-            <option value="">All Genres</option>
-            <option value="action">Action</option>
-            <option value="adventure">Adventure</option>
-            <option value="comedy">Comedy</option>
-            <option value="drama">Drama</option>
-            <option value="fantasy">Fantasy</option>
-            <option value="romance">Romance</option>
+            <option value="">Tất cả thể loại</option>
+            {% for g in genres %}
+            <option
+              value="{{ g }}"
+              {% if genre == g %}selected{% endif %}
+            >
+              {{ g }}
+            </option>
+            {% endfor %}
           </select>
         </div>
         <div class="col-md-3">
           <select class="form-select" name="status">
-            <option value="">All Status</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="completed">Completed</option>
-            <option value="hiatus">On Hiatus</option>
+            <option value="">Tất cả trạng thái</option>
+            {% for s in statuses %}
+            <option
+              value="{{ s }}"
+              {% if status == s %}selected{% endif %}
+            >
+              {{ s }}
+            </option>
+            {% endfor %}
           </select>
         </div>
-        <div class="col-md-3">
-          <button type="submit" class="btn btn-primary">Lọc</button>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Lọc</button>
         </div>
       </form>
     </div>
@@ -45,9 +83,19 @@ block content %}
       <div class="card-body">
         <h5 class="card-title">{{ comic.title }}</h5>
         <p class="card-text">
-          <small class="text-muted">{{ comic.author }}</small><br />
+          <small class="text-muted">
+            <i class="fas fa-feather-alt me-1"></i>{{ comic.author or 'Đang cập nhật' }}
+          </small><br />
+          {% if comic.uploader %}
+          <small class="text-muted">
+            <i class="fas fa-upload me-1"></i>
+            <span class="uploader-text" title="{{ comic.uploader.username }}">{{ comic.uploader.username }}</span>
+          </small><br />
+          {% endif %}
           <span class="badge bg-primary">{{ comic.status }}</span>
-          <span class="badge bg-secondary">{{ comic.genre }}</span>
+          <span class="card-genre-badges">
+            <span class="badge bg-secondary">{{ comic.genre }}</span>
+          </span>
         </p>
         <p class="card-text text-truncate">{{ comic.description }}</p>
         <a

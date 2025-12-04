@@ -1,25 +1,157 @@
 {% extends 'base.html' %}
 {% block title %}Manage Users{% endblock %}
+{% block extra_css %}
+<style>
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    .user-table-mobile {
+      display: block;
+    }
+    
+    .user-card-mobile {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .user-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+    
+    .user-card-body {
+      margin-bottom: 10px;
+    }
+    
+    .user-card-body > div {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .user-card-body label {
+      color: #aaa;
+      font-weight: 600;
+    }
+    
+    .user-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .user-card-actions form,
+    .user-card-actions button {
+      flex: 1;
+      min-width: 120px;
+    }
+    
+    .user-card-actions .btn {
+      width: 100%;
+    }
+    
+    .desktop-table {
+      display: none;
+    }
+    
+    .mobile-filters {
+      margin-bottom: 15px;
+    }
+    
+    .mobile-filters input,
+    .mobile-filters select {
+      width: 100% !important;
+      margin-bottom: 10px;
+    }
+  }
+  
+  @media (min-width: 769px) {
+    .user-table-mobile {
+      display: none;
+    }
+    
+    .desktop-table {
+      display: table;
+    }
+  }
+</style>
+{% endblock %}
 {% block content %}
 <div class="container mt-4">
   <h2>Manage Users</h2>
-  <table class="table table-bordered table-dark table-hover">
+  
+  <!-- Filters -->
+  <div class="mb-3 d-flex justify-content-between align-items-center desktop-filters">
+    <div>
+      <input id="user-search" type="text" class="form-control form-control-sm d-inline-block w-auto" placeholder="Tìm kiếm tên, email..." style="width: 220px; display: inline-block;">
+      <select id="role-filter" class="form-select form-select-sm d-inline-block w-auto" style="width: 140px; display: inline-block;">
+        <option value="">Tất cả vai trò</option>
+        <option value="admin">Admin</option>
+        <option value="moderator">Kiểm duyệt</option>
+        <option value="uploader">Người đăng truyện</option>
+        <option value="reader">Đọc giả</option>
+      </select>
+    </div>
+  </div>
+  
+  <!-- Mobile Filters -->
+  <div class="mobile-filters d-md-none">
+    <input id="user-search-mobile" type="text" class="form-control form-control-sm" placeholder="Tìm kiếm tên, email...">
+    <select id="role-filter-mobile" class="form-select form-select-sm">
+      <option value="">Tất cả vai trò</option>
+      <option value="admin">Admin</option>
+      <option value="moderator">Kiểm duyệt</option>
+      <option value="uploader">Người đăng truyện</option>
+      <option value="reader">Đọc giả</option>
+    </select>
+  </div>
+  
+  <!-- Desktop Table -->
+  <div class="table-responsive">
+    <table id="user-table" class="table table-bordered table-dark table-hover desktop-table">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Username</th>
-        <th>Email</th>
-        <th>Role</th>
+        <th style="cursor:pointer" onclick="sortTable(0)">ID &#x25B2;&#x25BC;</th>
+        <th style="cursor:pointer" onclick="sortTable(1)">Username &#x25B2;&#x25BC;</th>
+        <th style="cursor:pointer" onclick="sortTable(2)">Email &#x25B2;&#x25BC;</th>
+        <th style="cursor:pointer" onclick="sortTable(3)">Role &#x25B2;&#x25BC;</th>
+        <th>Trạng thái</th>
         <th>Action</th>
       </tr>
     </thead>
     <tbody>
       {% for user in users %}
-      <tr>
+      <tr data-role="{{ user.role }}">
         <td>{{ user.id }}</td>
         <td>{{ user.username }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.get_role_display() }}</td>
+        <td>
+          {% if user.is_currently_banned() %}
+            {% set ban_info = user.get_ban_info() %}
+            <span class="badge bg-danger" title="{{ ban_info.reason }}">
+              <i class="fas fa-ban"></i> Đã cấm
+              {% if ban_info.is_permanent %}
+                (Vĩnh viễn)
+              {% else %}
+                ({{ ban_info.remaining_days }}d {{ ban_info.remaining_hours }}h)
+              {% endif %}
+            </span>
+          {% else %}
+            <span class="badge bg-success"><i class="fas fa-check"></i> Hoạt động</span>
+          {% endif %}
+        </td>
         <td>
           {% if user.username != 'admin' %}
           <form method="post" style="display:inline-block;">
@@ -32,6 +164,24 @@
             </select>
             <button type="submit" class="btn btn-sm btn-primary">Set Role</button>
           </form>
+          
+          {% if user.is_currently_banned() %}
+          <!-- Unban button -->
+          <form method="post" action="{{ url_for('admin.unban_user', user_id=user.id) }}" style="display:inline-block; margin-left:4px;">
+            <button type="submit" class="btn btn-sm btn-success" title="Gỡ cấm">
+              <i class="fas fa-unlock"></i> Gỡ cấm
+            </button>
+          </form>
+          {% else %}
+          <!-- Ban button -->
+          <button type="button" class="btn btn-sm btn-warning" onclick="showBanModal({{ user.id }}, '{{ user.username }}')" data-username="{{ user.username }}" style="margin-left:4px;">
+            <i class="fas fa-ban"></i> Cấm
+          </button>
+          {% endif %}
+          
+          <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display:inline-block; margin-left:4px;" onsubmit="return confirm('Xác nhận xóa người dùng này?');">
+            <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+          </form>
           {% else %}
             <span class="text-warning">Super Admin</span>
           {% endif %}
@@ -40,5 +190,231 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
+  
+  <!-- Mobile Card View -->
+  <div class="user-table-mobile">
+    {% for user in users %}
+    <div class="user-card-mobile" data-role="{{ user.role }}">
+      <div class="user-card-header">
+        <div>
+          <strong style="font-size: 1.1rem;">{{ user.username }}</strong>
+          <div style="font-size: 0.85rem; color: #aaa;">ID: {{ user.id }}</div>
+        </div>
+        {% if user.is_currently_banned() %}
+          {% set ban_info = user.get_ban_info() %}
+          <span class="badge bg-danger">
+            <i class="fas fa-ban"></i> Cấm
+          </span>
+        {% else %}
+          <span class="badge bg-success">
+            <i class="fas fa-check"></i> OK
+          </span>
+        {% endif %}
+      </div>
+      
+      <div class="user-card-body">
+        <div>
+          <label>Email:</label>
+          <span style="font-size: 0.9rem;">{{ user.email }}</span>
+        </div>
+        <div>
+          <label>Vai trò:</label>
+          <span>{{ user.get_role_display() }}</span>
+        </div>
+        {% if user.is_currently_banned() %}
+          {% set ban_info = user.get_ban_info() %}
+          <div>
+            <label>Trạng thái:</label>
+            <span class="text-danger">
+              {% if ban_info.is_permanent %}
+                Cấm vĩnh viễn
+              {% else %}
+                Còn {{ ban_info.remaining_days }}d {{ ban_info.remaining_hours }}h
+              {% endif %}
+            </span>
+          </div>
+          <div>
+            <label>Lý do:</label>
+            <span style="font-size: 0.85rem;">{{ ban_info.reason }}</span>
+          </div>
+        {% endif %}
+      </div>
+      
+      {% if user.username != 'admin' %}
+      <div class="user-card-actions">
+        <form method="post" style="flex: 1;">
+          <input type="hidden" name="user_id" value="{{ user.id }}">
+          <select name="role" class="form-select form-select-sm mb-2">
+            <option value="reader" {% if user.role == 'reader' %}selected{% endif %}>Đọc giả</option>
+            <option value="uploader" {% if user.role == 'uploader' %}selected{% endif %}>Uploader</option>
+            <option value="moderator" {% if user.role == 'moderator' %}selected{% endif %}>Mod</option>
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+          </select>
+          <button type="submit" class="btn btn-sm btn-primary w-100">Đổi vai trò</button>
+        </form>
+        
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+          {% if user.is_currently_banned() %}
+          <form method="post" action="{{ url_for('admin.unban_user', user_id=user.id) }}">
+            <button type="submit" class="btn btn-sm btn-success w-100">
+              <i class="fas fa-unlock"></i> Gỡ cấm
+            </button>
+          </form>
+          {% else %}
+          <button type="button" class="btn btn-sm btn-warning w-100" onclick="showBanModal({{ user.id }}, '{{ user.username }}')" data-username="{{ user.username }}">
+            <i class="fas fa-ban"></i> Cấm
+          </button>
+          {% endif %}
+          
+          <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" onsubmit="return confirm('Xác nhận xóa?');">
+            <button type="submit" class="btn btn-sm btn-danger w-100">
+              <i class="fas fa-trash"></i> Xóa
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+        <div class="text-center text-warning">
+          <i class="fas fa-crown"></i> Super Admin
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  
+  <!-- Ban User Modal -->
+  <div class="modal fade" id="banModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-light">
+        <div class="modal-header">
+          <h5 class="modal-title">Cấm <span id="banUsername"></span></h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" id="banForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Thời gian cấm:</label>
+              <select class="form-select" name="ban_duration" id="banDuration" required>
+                <option value="">-- Chọn thời gian --</option>
+                <option value="hours">Giờ</option>
+                <option value="days">Ngày</option>
+                <option value="weeks">Tuần</option>
+                <option value="permanent">Vĩnh viễn</option>
+              </select>
+            </div>
+            
+            <div class="mb-3" id="banValueContainer" style="display: none;">
+              <label class="form-label">Số lượng:</label>
+              <input type="number" class="form-control" name="ban_value" id="banValue" min="1" placeholder="Nhập số">
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">Lý do:</label>
+              <textarea class="form-control" name="ban_reason" rows="2" placeholder="Lý do cấm (tùy chọn)"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            <button type="submit" class="btn btn-warning">
+              <i class="fas fa-ban"></i> Cấm
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Show ban modal
+    function showBanModal(userId, username) {
+      document.getElementById('banUsername').textContent = username;
+      document.getElementById('banForm').action = '/admin/users/' + userId + '/ban';
+      var modal = new bootstrap.Modal(document.getElementById('banModal'));
+      modal.show();
+    }
+    
+    // Show/hide ban value input based on duration type
+    document.getElementById('banDuration').addEventListener('change', function() {
+      var container = document.getElementById('banValueContainer');
+      var input = document.getElementById('banValue');
+      if (this.value === 'permanent') {
+        container.style.display = 'none';
+        input.removeAttribute('required');
+      } else if (this.value) {
+        container.style.display = 'block';
+        input.setAttribute('required', 'required');
+      } else {
+        container.style.display = 'none';
+        input.removeAttribute('required');
+      }
+    });
+    
+    // Lọc người dùng - Desktop
+    document.getElementById('user-search').addEventListener('input', function() {
+      filterTable();
+    });
+    document.getElementById('role-filter').addEventListener('change', function() {
+      filterTable();
+    });
+    
+    // Lọc người dùng - Mobile
+    document.getElementById('user-search-mobile').addEventListener('input', function() {
+      filterMobileCards();
+    });
+    document.getElementById('role-filter-mobile').addEventListener('change', function() {
+      filterMobileCards();
+    });
+    
+    function filterTable() {
+      var input = document.getElementById('user-search').value.toLowerCase();
+      var role = document.getElementById('role-filter').value;
+      var table = document.getElementById('user-table');
+      var trs = table.getElementsByTagName('tr');
+      for (var i = 1; i < trs.length; i++) {
+        var tds = trs[i].getElementsByTagName('td');
+        if (tds.length < 4) continue;
+        var text = (tds[1].innerText + ' ' + tds[2].innerText).toLowerCase();
+        var rowRole = trs[i].getAttribute('data-role');
+        var show = (!input || text.includes(input)) && (!role || rowRole === role);
+        trs[i].style.display = show ? '' : 'none';
+      }
+    }
+    
+    function filterMobileCards() {
+      var input = document.getElementById('user-search-mobile').value.toLowerCase();
+      var role = document.getElementById('role-filter-mobile').value;
+      var cards = document.querySelectorAll('.user-card-mobile');
+      
+      cards.forEach(function(card) {
+        var username = card.querySelector('.user-card-header strong').textContent.toLowerCase();
+        var email = card.querySelector('.user-card-body').textContent.toLowerCase();
+        var cardRole = card.getAttribute('data-role');
+        
+        var matchesSearch = !input || username.includes(input) || email.includes(input);
+        var matchesRole = !role || cardRole === role;
+        
+        card.style.display = (matchesSearch && matchesRole) ? 'block' : 'none';
+      });
+    }
+    
+    // Sắp xếp bảng
+    function sortTable(n) {
+      var table = document.getElementById('user-table');
+      var rows = Array.from(table.rows).slice(1);
+      var asc = table.getAttribute('data-sort-col') != n || table.getAttribute('data-sort-dir') == 'desc';
+      rows.sort(function(a, b) {
+        var x = a.cells[n].innerText.toLowerCase();
+        var y = b.cells[n].innerText.toLowerCase();
+        if (!isNaN(x) && !isNaN(y)) { x = Number(x); y = Number(y); }
+        if (x < y) return asc ? -1 : 1;
+        if (x > y) return asc ? 1 : -1;
+        return 0;
+      });
+      for (var i = 0; i < rows.length; i++) table.tBodies[0].appendChild(rows[i]);
+      table.setAttribute('data-sort-col', n);
+      table.setAttribute('data-sort-dir', asc ? 'asc' : 'desc');
+    }
+  </script>
 </div>
 {% endblock %}
